@@ -56,8 +56,9 @@ Authorization:`Bearer ${SUPABASE_KEY}`
 }
 });
 
-const history =
-await historyResponse.json();
+const history = await historyResponse.json();
+
+console.log("HISTORY RAW RESPONSE:", history);
 
 // STEP 3: Build timeline
 let timelineHTML = "";
