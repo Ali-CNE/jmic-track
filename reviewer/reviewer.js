@@ -23,7 +23,6 @@ content.innerHTML =
 "<p class='error'>Invalid review link.</p>";
 
 return;
-
 }
 
 try{
