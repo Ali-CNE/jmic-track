@@ -46,7 +46,7 @@ const article = manuscriptData[0];
 
 // STEP 2: Fetch timeline (IMPORTANT FIX)
 const historyURL =
-`${SUPABASE_URL}/rest/v1/status_history?article_id=eq.${encodeURIComponent(articleID)}&tracking_token=eq.${encodeURIComponent(tracking_token)}&order=updated_at.asc`;
+`${SUPABASE_URL}/rest/v1/status_history?article_id=eq.${encodeURIComponent(articleID)}&order=updated_at.asc`;
 
 const historyResponse =
 await fetch(historyURL,{
@@ -56,9 +56,13 @@ Authorization:`Bearer ${SUPABASE_KEY}`
 }
 });
 
-const history = await historyResponse.json();
+const historyData = await historyResponse.json();
 
-console.log("HISTORY RAW RESPONSE:", history);
+console.log("HISTORY RESPONSE:", historyData);
+
+const history = Array.isArray(historyData) ? historyData : [];
+
+//console.log("HISTORY RAW RESPONSE:", history);
 
 // STEP 3: Build timeline
 let timelineHTML = "";
