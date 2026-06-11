@@ -9,21 +9,21 @@ const token = params.get("token");
 
 let assignment = null;
 
-loadAssignment();
+window.onload = loadAssignment;
 
 async function loadAssignment() {
 
     const app = document.getElementById("app");
 
     if (!token) {
-        app.innerHTML = "<p class='error'>Invalid reviewer link.</p>";
+        app.innerHTML = "Invalid or missing token.";
         return;
     }
 
     try {
 
         const response = await fetch(
-            `${SUPABASE_URL}/rest/v1/review_assignments?review_token=eq.${encodeURIComponent(token)}`,
+            `${SUPABASE_URL}/rest/v1/review_assignments?review_token=eq.${token}`,
             {
                 headers: {
                     apikey: SUPABASE_KEY,
@@ -35,26 +35,42 @@ async function loadAssignment() {
         const data = await response.json();
 
         if (!Array.isArray(data) || data.length === 0) {
-            app.innerHTML = "<p class='error'>Review assignment not found.</p>";
+            app.innerHTML = "No assignment found.";
             return;
         }
 
         assignment = data[0];
 
-        renderState();
+        renderPage();
 
-    } catch (error) {
-        console.error(error);
-        app.innerHTML = "<p class='error'>Error loading assignment.</p>";
+    } catch (err) {
+        console.error(err);
+        app.innerHTML = "Error loading assignment.";
     }
 }
 
-function renderState() {
+function renderPage() {
 
     const app = document.getElementById("app");
 
+    let pdfButtons = "";
+
+    if (assignment.manuscript_pdf_url) {
+        pdfButtons = `
+            <div style="margin:10px 0;">
+                <a href="${assignment.manuscript_pdf_url}" target="_blank">
+                    View Manuscript
+                </a>
+                <br>
+                <a href="${assignment.manuscript_pdf_url}" download>
+                    Download PDF
+                </a>
+            </div>
+        `;
+    }
+
     if (assignment.review_submitted) {
-        app.innerHTML = "<h2 class='success'>Review already submitted.</h2>";
+        app.innerHTML = "<h2>Review already submitted.</h2>";
         return;
     }
 
@@ -65,46 +81,29 @@ function renderState() {
 
     if (assignment.invitation_status === "Pending") {
 
-        const pdfButtons = assignment.manuscript_pdf_url
-            ? `
-                <div style="margin:15px 0;">
-                    <a href="${assignment.manuscript_pdf_url}" target="_blank" class="pdf-btn">
-                        📄 View Manuscript
-                    </a>
-
-                    <a href="${assignment.manuscript_pdf_url}" download class="pdf-btn">
-                        ⬇ Download PDF
-                    </a>
-                </div>
-              `
-            : "";
-
         app.innerHTML = `
             <h2>${assignment.manuscript_title}</h2>
 
-            <p><strong>Article ID:</strong> ${assignment.article_id}</p>
+            <p><b>Article ID:</b> ${assignment.article_id}</p>
 
-            <p><strong>Abstract:</strong></p>
-            <p>${assignment.abstract || "-"}</p>
+            <p>${assignment.abstract || ""}</p>
 
             ${pdfButtons}
 
-            <button onclick="acceptInvitation()">Accept Invitation</button>
-            <button onclick="declineInvitation()" style="background:#777;">Decline</button>
+            <button onclick="acceptInvitation()">Accept</button>
+            <button onclick="declineInvitation()">Decline</button>
         `;
 
         return;
     }
 
-    if (assignment.invitation_status === "Accepted") {
-        renderReviewForm();
-    }
+    renderReviewForm();
 }
 
 async function acceptInvitation() {
 
     await fetch(
-        `${SUPABASE_URL}/rest/v1/review_assignments?review_token=eq.${encodeURIComponent(token)}`,
+        `${SUPABASE_URL}/rest/v1/review_assignments?review_token=eq.${token}`,
         {
             method: "PATCH",
             headers: {
@@ -125,7 +124,7 @@ async function acceptInvitation() {
 async function declineInvitation() {
 
     await fetch(
-        `${SUPABASE_URL}/rest/v1/review_assignments?review_token=eq.${encodeURIComponent(token)}`,
+        `${SUPABASE_URL}/rest/v1/review_assignments?review_token=eq.${token}`,
         {
             method: "PATCH",
             headers: {
@@ -140,35 +139,23 @@ async function declineInvitation() {
     );
 
     assignment.invitation_status = "Declined";
-    renderState();
+    renderPage();
 }
 
 function renderReviewForm() {
 
     const app = document.getElementById("app");
 
-    const pdfButtons = assignment.manuscript_pdf_url
-        ? `
-            <div style="margin-bottom:15px;">
-                <a href="${assignment.manuscript_pdf_url}" target="_blank" class="pdf-btn">
-                    📄 View Manuscript
-                </a>
-
-                <a href="${assignment.manuscript_pdf_url}" download class="pdf-btn">
-                    ⬇ Download PDF
-                </a>
-            </div>
-          `
-        : "";
-
     app.innerHTML = `
         <h2>${assignment.manuscript_title}</h2>
 
-        <p><strong>Article ID:</strong> ${assignment.article_id}</p>
+        <p><b>Article ID:</b> ${assignment.article_id}</p>
 
-        ${pdfButtons}
+        ${assignment.manuscript_pdf_url ? `
+            <a href="${assignment.manuscript_pdf_url}" target="_blank">View Manuscript</a>
+            <br>
+        ` : ""}
 
-        <label>Recommendation</label>
         <select id="rec">
             <option>Accept</option>
             <option>Minor Revision</option>
@@ -176,14 +163,11 @@ function renderReviewForm() {
             <option>Reject</option>
         </select>
 
-        <label>Comments to Author</label>
-        <textarea id="author"></textarea>
+        <br><br>
 
-        <label>Confidential Comments</label>
-        <textarea id="editor"></textarea>
+        <textarea id="comments" placeholder="Comments to author"></textarea>
 
-        <label>Score (1-10)</label>
-        <input type="number" id="score" min="1" max="10">
+        <br><br>
 
         <button onclick="submitReview()">Submit Review</button>
     `;
@@ -192,9 +176,7 @@ function renderReviewForm() {
 async function submitReview() {
 
     const rec = document.getElementById("rec").value;
-    const author = document.getElementById("author").value;
-    const editor = document.getElementById("editor").value;
-    const score = document.getElementById("score").value;
+    const comments = document.getElementById("comments").value;
 
     await fetch(
         `${SUPABASE_URL}/rest/v1/reviews`,
@@ -209,15 +191,13 @@ async function submitReview() {
                 article_id: assignment.article_id,
                 reviewer_email: assignment.reviewer_email,
                 recommendation: rec,
-                comments_to_author: author,
-                confidential_comments: editor,
-                score: score
+                comments_to_author: comments
             })
         }
     );
 
     await fetch(
-        `${SUPABASE_URL}/rest/v1/review_assignments?review_token=eq.${encodeURIComponent(token)}`,
+        `${SUPABASE_URL}/rest/v1/review_assignments?review_token=eq.${token}`,
         {
             method: "PATCH",
             headers: {
@@ -233,6 +213,5 @@ async function submitReview() {
     );
 
     document.getElementById("app").innerHTML =
-        "<h2 class='success'>Review submitted successfully.</h2>";
-}
-    
+        "<h2>Review submitted successfully.</h2>";
+}   
