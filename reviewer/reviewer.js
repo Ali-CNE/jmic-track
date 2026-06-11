@@ -13,7 +13,6 @@ loadAssignment();
 
 async function loadAssignment() {
 
-```
 const app = document.getElementById("app");
 
 if (!token) {
