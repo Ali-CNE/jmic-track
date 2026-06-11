@@ -13,210 +13,426 @@ loadAssignment();
 
 async function loadAssignment() {
 
+```
 const app = document.getElementById("app");
 
 if (!token) {
-app.innerHTML = "<p class='error'>Invalid access link.</p>";
-return;
+    app.innerHTML =
+        "<p class='error'>Invalid reviewer link.</p>";
+    return;
 }
 
 try {
 
-const res = await fetch(
-`${SUPABASE_URL}/rest/v1/review_assignments?review_token=eq.${token}`,
-{
-headers: {
-apikey: SUPABASE_KEY,
-Authorization: `Bearer ${SUPABASE_KEY}`
+    const response = await fetch(
+        `${SUPABASE_URL}/rest/v1/review_assignments?review_token=eq.${encodeURIComponent(token)}`,
+        {
+            headers: {
+                apikey: SUPABASE_KEY,
+                Authorization: `Bearer ${SUPABASE_KEY}`
+            }
+        }
+    );
+
+    const data = await response.json();
+
+    if (!Array.isArray(data) || data.length === 0) {
+
+        app.innerHTML =
+            "<p class='error'>Review assignment not found.</p>";
+
+        return;
+    }
+
+    assignment = data[0];
+
+    renderState();
+
+} catch (error) {
+
+    console.error(error);
+
+    app.innerHTML =
+        "<p class='error'>Unable to load assignment.</p>";
 }
-}
-);
+```
 
-const data = await res.json();
-
-if (!data || data.length === 0) {
-app.innerHTML = "<p class='error'>Assignment not found.</p>";
-return;
-}
-
-assignment = data[0];
-
-renderState();
-
-} catch (err) {
-console.error(err);
-app.innerHTML = "<p class='error'>Error loading assignment.</p>";
-}
 }
 
 function renderState() {
 
+```
 const app = document.getElementById("app");
 
 if (assignment.review_submitted) {
-app.innerHTML = "<h3 class='success'>Review already submitted.</h3>";
-return;
+
+    app.innerHTML = `
+    <h2 class="success">
+    Review Already Submitted
+    </h2>
+
+    <p>
+    Thank you for completing your review.
+    </p>
+    `;
+
+    return;
 }
 
 if (assignment.invitation_status === "Declined") {
-app.innerHTML = "<h3 class='error'>You have declined this invitation.</h3>";
-return;
+
+    app.innerHTML = `
+    <h2>
+    Invitation Declined
+    </h2>
+
+    <p>
+    Thank you for your response.
+    </p>
+    `;
+
+    return;
 }
 
 if (assignment.invitation_status === "Pending") {
-app.innerHTML = `
-<h2>${assignment.manuscript_title}</h2>
 
-<div class="manuscript-info">
-<p><strong>Article ID:</strong> ${assignment.article_id}</p>
-<p><strong>Due Date:</strong> ${assignment.due_date || "-"}</p>
-<p><strong>Abstract:</strong></p>
-<p>${assignment.abstract || "Not available"}</p>
-</div>
+    const pdfButtons =
+        assignment.manuscript_pdf_url
+            ?
+            `
+            <div style="margin-top:20px;margin-bottom:20px;">
 
-<button onclick="acceptInvitation()">Accept Invitation</button>
-<button onclick="declineInvitation()" style="background:#999;">Decline</button>
-`;
-return;
+                <a href="${assignment.manuscript_pdf_url}"
+                   target="_blank"
+                   class="pdf-btn">
+                   📄 View Manuscript
+                </a>
+
+                <a href="${assignment.manuscript_pdf_url}"
+                   download
+                   class="pdf-btn">
+                   ⬇ Download PDF
+                </a>
+
+            </div>
+            `
+            : "";
+
+    app.innerHTML = `
+
+    <h2>${assignment.manuscript_title}</h2>
+
+    <div class="manuscript-info">
+
+        <p>
+        <strong>Article ID:</strong>
+        ${assignment.article_id}
+        </p>
+
+        <p>
+        <strong>Due Date:</strong>
+        ${assignment.due_date || "-"}
+        </p>
+
+        <p>
+        <strong>Abstract:</strong>
+        </p>
+
+        <p>
+        ${assignment.abstract || "Not available"}
+        </p>
+
+        ${pdfButtons}
+
+    </div>
+
+    <button onclick="acceptInvitation()">
+    Accept Invitation
+    </button>
+
+    <button
+        onclick="declineInvitation()"
+        style="background:#999;margin-left:10px;">
+    Decline
+    </button>
+
+    `;
+
+    return;
 }
 
-if (assignment.invitation_status === "Accepted") {
-renderReviewForm();
+if (
+    assignment.invitation_status === "Accepted" ||
+    assignment.invitation_status === "Submitted"
+) {
+
+    renderReviewForm();
 }
+```
+
 }
 
 async function acceptInvitation() {
 
-await fetch(
-`${SUPABASE_URL}/rest/v1/review_assignments?review_token=eq.${token}`,
-{
-method: "PATCH",
-headers: {
-apikey: SUPABASE_KEY,
-Authorization: `Bearer ${SUPABASE_KEY}`,
-"Content-Type": "application/json"
-},
-body: JSON.stringify({
-invitation_status: "Accepted"
-})
-}
-);
+```
+try {
 
-assignment.invitation_status = "Accepted";
-renderState();
+    await fetch(
+        `${SUPABASE_URL}/rest/v1/review_assignments?review_token=eq.${encodeURIComponent(token)}`,
+        {
+            method: "PATCH",
+            headers: {
+                apikey: SUPABASE_KEY,
+                Authorization: `Bearer ${SUPABASE_KEY}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                invitation_status: "Accepted"
+            })
+        }
+    );
+
+    assignment.invitation_status = "Accepted";
+
+    renderReviewForm();
+
+} catch (error) {
+
+    console.error(error);
+
+    alert("Unable to accept invitation.");
+}
+```
+
 }
 
 async function declineInvitation() {
 
-await fetch(
-`${SUPABASE_URL}/rest/v1/review_assignments?review_token=eq.${token}`,
-{
-method: "PATCH",
-headers: {
-apikey: SUPABASE_KEY,
-Authorization: `Bearer ${SUPABASE_KEY}`,
-"Content-Type": "application/json"
-},
-body: JSON.stringify({
-invitation_status: "Declined"
-})
-}
-);
+```
+try {
 
-assignment.invitation_status = "Declined";
-renderState();
+    await fetch(
+        `${SUPABASE_URL}/rest/v1/review_assignments?review_token=eq.${encodeURIComponent(token)}`,
+        {
+            method: "PATCH",
+            headers: {
+                apikey: SUPABASE_KEY,
+                Authorization: `Bearer ${SUPABASE_KEY}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                invitation_status: "Declined"
+            })
+        }
+    );
+
+    assignment.invitation_status = "Declined";
+
+    renderState();
+
+} catch (error) {
+
+    console.error(error);
+
+    alert("Unable to decline invitation.");
+}
+```
+
 }
 
 function renderReviewForm() {
 
+```
 const app = document.getElementById("app");
 
+const pdfButtons =
+    assignment.manuscript_pdf_url
+        ?
+        `
+        <div style="margin-bottom:20px;">
+
+            <a href="${assignment.manuscript_pdf_url}"
+               target="_blank"
+               class="pdf-btn">
+               📄 View Manuscript
+            </a>
+
+            <a href="${assignment.manuscript_pdf_url}"
+               download
+               class="pdf-btn">
+               ⬇ Download PDF
+            </a>
+
+        </div>
+        `
+        : "";
+
 app.innerHTML = `
+
 <h2>${assignment.manuscript_title}</h2>
 
 <div class="manuscript-info">
-<p><strong>Article ID:</strong> ${assignment.article_id}</p>
+
+    <p>
+    <strong>Article ID:</strong>
+    ${assignment.article_id}
+    </p>
+
+    ${pdfButtons}
+
 </div>
 
 <div class="review-section">
 
-<label>Recommendation</label>
-<select id="rec">
-<option>Accept</option>
-<option>Minor Revision</option>
-<option>Major Revision</option>
-<option>Reject</option>
-</select>
+    <label>Recommendation</label>
 
-<label>Comments to Author</label>
-<textarea id="author"></textarea>
+    <select id="recommendation">
 
-<label>Confidential Comments to Editor</label>
-<textarea id="editor"></textarea>
+        <option value="Accept">
+        Accept
+        </option>
 
-<label>Score (1–10)</label>
-<input type="number" id="score" min="1" max="10">
+        <option value="Minor Revision">
+        Minor Revision
+        </option>
 
-<button onclick="submitReview()">Submit Review</button>
+        <option value="Major Revision">
+        Major Revision
+        </option>
+
+        <option value="Reject">
+        Reject
+        </option>
+
+    </select>
+
+    <label>Comments to Author</label>
+
+    <textarea
+        id="commentsAuthor"></textarea>
+
+    <label>
+    Confidential Comments to Editor
+    </label>
+
+    <textarea
+        id="commentsEditor"></textarea>
+
+    <label>
+    Overall Score (1-10)
+    </label>
+
+    <input
+        type="number"
+        id="score"
+        min="1"
+        max="10">
+
+    <button onclick="submitReview()">
+    Submit Review
+    </button>
 
 </div>
+
 `;
+```
+
 }
 
 async function submitReview() {
 
-const rec = document.getElementById("rec").value;
-const author = document.getElementById("author").value;
-const editor = document.getElementById("editor").value;
-const score = document.getElementById("score").value;
+```
+const recommendation =
+    document.getElementById("recommendation").value;
+
+const commentsAuthor =
+    document.getElementById("commentsAuthor").value;
+
+const commentsEditor =
+    document.getElementById("commentsEditor").value;
+
+const score =
+    document.getElementById("score").value;
 
 try {
 
-// 1. Insert review
-const res = await fetch(
-`${SUPABASE_URL}/rest/v1/reviews`,
-{
-method: "POST",
-headers: {
-apikey: SUPABASE_KEY,
-Authorization: `Bearer ${SUPABASE_KEY}`,
-"Content-Type": "application/json"
-},
-body: JSON.stringify({
-article_id: assignment.article_id,
-reviewer_email: assignment.reviewer_email,
-recommendation: rec,
-comments_to_author: author,
-confidential_comments: editor,
-score: score
-})
+    const response = await fetch(
+        `${SUPABASE_URL}/rest/v1/reviews`,
+        {
+            method: "POST",
+            headers: {
+                apikey: SUPABASE_KEY,
+                Authorization: `Bearer ${SUPABASE_KEY}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+
+                article_id:
+                    assignment.article_id,
+
+                reviewer_email:
+                    assignment.reviewer_email,
+
+                recommendation:
+                    recommendation,
+
+                comments_to_author:
+                    commentsAuthor,
+
+                confidential_comments:
+                    commentsEditor,
+
+                score:
+                    score
+
+            })
+        }
+    );
+
+    if (!response.ok) {
+
+        throw new Error(
+            "Review submission failed."
+        );
+    }
+
+    await fetch(
+        `${SUPABASE_URL}/rest/v1/review_assignments?review_token=eq.${encodeURIComponent(token)}`,
+        {
+            method: "PATCH",
+            headers: {
+                apikey: SUPABASE_KEY,
+                Authorization: `Bearer ${SUPABASE_KEY}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                review_submitted: true,
+                invitation_status: "Submitted",
+                status: "Submitted"
+            })
+        }
+    );
+
+    document.getElementById("app").innerHTML = `
+
+    <h2 class="success">
+    Review Submitted Successfully
+    </h2>
+
+    <p>
+    Thank you for your valuable review.
+    </p>
+
+    `;
+
+} catch (error) {
+
+    console.error(error);
+
+    alert(
+        "Failed to submit review."
+    );
 }
-);
+```
 
-if (!res.ok) throw new Error("Insert failed");
-
-// 2. Mark assignment complete
-await fetch(
-`${SUPABASE_URL}/rest/v1/review_assignments?review_token=eq.${token}`,
-{
-method: "PATCH",
-headers: {
-apikey: SUPABASE_KEY,
-Authorization: `Bearer ${SUPABASE_KEY}`,
-"Content-Type": "application/json"
-},
-body: JSON.stringify({
-review_submitted: true,
-invitation_status: "Submitted"
-})
-}
-);
-
-document.getElementById("app").innerHTML =
-"<h2 class='success'>Review submitted successfully.</h2>";
-
-} catch (err) {
-console.error(err);
-alert("Submission failed.");
-}
 }
