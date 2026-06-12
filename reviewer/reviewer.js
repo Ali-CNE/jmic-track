@@ -110,7 +110,10 @@ async function acceptInvitation() {
                 apikey: SUPABASE_KEY,
                 Authorization: `Bearer ${SUPABASE_KEY}`,
                 "Content-Type": "application/json"
+		"Prefer": "return=representation"
             },
+		const result = await response.json();
+		console.log(result);
             body: JSON.stringify({
                 invitation_status: "Accepted"
             })
@@ -131,7 +134,10 @@ async function declineInvitation() {
                 apikey: SUPABASE_KEY,
                 Authorization: `Bearer ${SUPABASE_KEY}`,
                 "Content-Type": "application/json"
+		"Prefer": "return=representation"
             },
+		const result = await response.json();
+		console.log(result);
             body: JSON.stringify({
                 invitation_status: "Declined"
             })
@@ -169,6 +175,20 @@ function renderReviewForm() {
 
         <br><br>
 
+	<label>Confidential Comments to Editor</label>
+
+<textarea
+    id="editor"
+    rows="6"></textarea>
+
+<label>Overall Score (1-10)</label>
+
+<input
+    type="number"
+    id="score"
+    min="1"
+    max="10">
+
         <button onclick="submitReview()">Submit Review</button>
     `;
 }
@@ -176,7 +196,23 @@ function renderReviewForm() {
 async function submitReview() {
 
     const rec = document.getElementById("rec").value;
-    const comments = document.getElementById("comments").value;
+    const author =
+document.getElementById("author").value;
+
+const editor =
+document.getElementById("editor").value;
+
+const score =
+document.getElementById("score").value;
+
+body: JSON.stringify({
+    article_id: assignment.article_id,
+    reviewer_email: assignment.reviewer_email,
+    recommendation: rec,
+    comments_to_author: author,
+    confidential_comments: editor,
+    score: score
+})
 
     await fetch(
         `${SUPABASE_URL}/rest/v1/reviews`,
@@ -204,6 +240,7 @@ async function submitReview() {
                 apikey: SUPABASE_KEY,
                 Authorization: `Bearer ${SUPABASE_KEY}`,
                 "Content-Type": "application/json"
+		"Prefer": "return=representation"
             },
             body: JSON.stringify({
                 review_submitted: true,
