@@ -4,18 +4,6 @@ const SUPABASE_URL =
 const SUPABASE_KEY =
 "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqb2NjaWptdXlua3FqbWxmdGh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwNjUzNzcsImV4cCI6MjA5NjY0MTM3N30.ZWslusLzSKN6KxD-k1Gm-1BFaB_SWZqirUm4KjnOfrQ";
 
-// ─── Bucket Configuration ────────────────────────────────────────────────────
-// Set this to the name of your Supabase Storage bucket that holds manuscripts.
-// The `manuscript_pdf_path` column in review_assignments should store only the
-// object path inside this bucket (e.g. "2025/JMIC-042/manuscript.pdf").
-const MANUSCRIPT_BUCKET = "manuscripts";
-
-// How long (in seconds) a signed URL stays valid after generation.
-// 3600 = 1 hour. Increase for longer review sessions if needed.
-const SIGNED_URL_EXPIRY = 3600;
-
-// ─── State ───────────────────────────────────────────────────────────────────
-
 const params =
 new URLSearchParams(window.location.search);
 
@@ -23,11 +11,6 @@ const token =
 params.get("token");
 
 let assignment = null;
-
-// Cache the signed URL so we don't regenerate it on every re-render.
-let cachedSignedUrl = null;
-
-// ─── Entry Point ─────────────────────────────────────────────────────────────
 
 window.onload = loadAssignment;
 
@@ -72,11 +55,7 @@ async function loadAssignment() {
 
         assignment = data[0];
 
-        // Pre-generate the signed URL once after loading the assignment,
-        // so it is ready before any render function needs it.
-        await refreshSignedUrl();
-
-        renderPage();
+        await renderPage();
 
     }
     catch(error) {
@@ -88,115 +67,46 @@ async function loadAssignment() {
     }
 }
 
-// ─── Signed URL Generation ────────────────────────────────────────────────────
+/* =========================
+   SECURE PDF SIGNED URL
+========================= */
 
-/**
- * Generates a short-lived signed URL for the manuscript PDF stored in Supabase
- * Storage and caches it in `cachedSignedUrl`.
- *
- * The assignment row must have a `manuscript_pdf_path` column containing the
- * object path within MANUSCRIPT_BUCKET (not a full URL). Example value:
- *   "2025/JMIC-042/manuscript.pdf"
- *
- * Returns the signed URL string on success, or null if no path is available
- * or the request fails.
- */
-async function refreshSignedUrl() {
-
-    const path = assignment.manuscript_pdf_path;
-
-    if (!path) {
-
-        cachedSignedUrl = null;
-
-        return null;
-    }
+async function getSignedPdfUrl(filePath) {
 
     try {
 
-        const response =
-        await fetch(
-            `${SUPABASE_URL}/storage/v1/object/sign/${MANUSCRIPT_BUCKET}/${encodeURIComponent(path)}`,
+        const response = await fetch(
+            `${SUPABASE_URL}/storage/v1/object/sign/manuscripts/${encodeURIComponent(filePath)}`,
             {
                 method: "POST",
                 headers: {
                     apikey: SUPABASE_KEY,
-                    Authorization:
-                    `Bearer ${SUPABASE_KEY}`,
-                    "Content-Type":
-                    "application/json"
+                    Authorization: `Bearer ${SUPABASE_KEY}`,
+                    "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
-                    expiresIn: SIGNED_URL_EXPIRY
+                    expiresIn: 3600
                 })
             }
         );
 
-        if (!response.ok) {
-
-            const err = await response.text();
-
-            console.error(
-                "Signed URL generation failed:",
-                err
-            );
-
-            cachedSignedUrl = null;
-
-            return null;
-        }
-
         const data = await response.json();
 
-        // Supabase returns { signedURL: "/storage/v1/object/sign/..." }
-        // Prefix with the project URL to get an absolute link.
-        cachedSignedUrl =
-            `${SUPABASE_URL}${data.signedURL}`;
+        return data.signedURL || null;
 
-        return cachedSignedUrl;
+    } catch (error) {
 
-    }
-    catch(error) {
-
-        console.error(
-            "Error generating signed URL:",
-            error
-        );
-
-        cachedSignedUrl = null;
+        console.error("PDF signing error:", error);
 
         return null;
     }
 }
 
-/**
- * Returns HTML for the manuscript PDF links using the cached signed URL.
- * If no signed URL is available, returns an empty string.
- */
-function pdfLinksHtml() {
+/* =========================
+   MAIN RENDER
+========================= */
 
-    if (!cachedSignedUrl) return "";
-
-    return `
-    <p>
-        <a href="${cachedSignedUrl}"
-           target="_blank"
-           rel="noopener noreferrer">
-           📄 View Manuscript
-        </a>
-    </p>
-    <p>
-        <a href="${cachedSignedUrl}"
-           download>
-           ⬇ Download PDF
-        </a>
-    </p>
-    `;
-}
-
-// ─── Render Functions ─────────────────────────────────────────────────────────
-
-function renderPage() {
+async function renderPage() {
 
     const app =
     document.getElementById("app");
@@ -204,8 +114,8 @@ function renderPage() {
     if (assignment.review_submitted) {
 
         app.innerHTML = `
-        <h2>Review Already Submitted</h2>
-        <p>Thank you for completing your review.</p>
+            <h2>Review Already Submitted</h2>
+            <p>Thank you for your review.</p>
         `;
 
         return;
@@ -214,128 +124,122 @@ function renderPage() {
     if (assignment.invitation_status === "Declined") {
 
         app.innerHTML = `
-        <h2>Invitation Declined</h2>
-        <p>Thank you for your response.</p>
+            <h2>Invitation Declined</h2>
         `;
 
         return;
     }
+
+    /* ===== PENDING STATE ===== */
 
     if (assignment.invitation_status === "Pending") {
 
+        let pdfButtons = "";
+
+        if (assignment.pdf_path) {
+
+            const signedUrl =
+            await getSignedPdfUrl(
+                assignment.pdf_path
+            );
+
+            if (signedUrl) {
+
+                pdfButtons = `
+                    <p>
+                        <a href="${signedUrl}" target="_blank">
+                            📄 View Manuscript
+                        </a>
+                    </p>
+
+                    <p>
+                        <a href="${signedUrl}" download>
+                            ⬇ Download PDF
+                        </a>
+                    </p>
+                `;
+            }
+        }
+
         app.innerHTML = `
-        <h2>${assignment.manuscript_title}</h2>
+            <h2>${assignment.manuscript_title}</h2>
 
-        <p>
-        <strong>Article ID:</strong>
-        ${assignment.article_id}
-        </p>
+            <p><b>Article ID:</b> ${assignment.article_id}</p>
 
-        <p>
-        <strong>Abstract:</strong>
-        ${assignment.abstract || ""}
-        </p>
+            <p>${assignment.abstract || ""}</p>
 
-        ${pdfLinksHtml()}
+            ${pdfButtons}
 
-        <button onclick="acceptInvitation()">
-        Accept Invitation
-        </button>
+            <button onclick="acceptInvitation()">
+                Accept Invitation
+            </button>
 
-        <button onclick="declineInvitation()">
-        Decline Invitation
-        </button>
+            <button onclick="declineInvitation()">
+                Decline Invitation
+            </button>
         `;
 
         return;
     }
+
+    /* ===== REVIEW FORM ===== */
 
     renderReviewForm();
 }
 
-// ─── Invitation Actions ───────────────────────────────────────────────────────
+/* =========================
+   ACCEPT / DECLINE
+========================= */
 
 async function acceptInvitation() {
 
-    try {
+    await fetch(
+        `${SUPABASE_URL}/rest/v1/review_assignments?review_token=eq.${encodeURIComponent(token)}`,
+        {
+            method: "PATCH",
+            headers: {
+                apikey: SUPABASE_KEY,
+                Authorization: `Bearer ${SUPABASE_KEY}`,
+                "Content-Type": "application/json",
+                "Prefer": "return=representation"
+            },
+            body: JSON.stringify({
+                invitation_status: "Accepted"
+            })
+        }
+    );
 
-        await fetch(
-            `${SUPABASE_URL}/rest/v1/review_assignments?review_token=eq.${encodeURIComponent(token)}`,
-            {
-                method: "PATCH",
-                headers: {
-                    apikey: SUPABASE_KEY,
-                    Authorization:
-                    `Bearer ${SUPABASE_KEY}`,
-                    "Content-Type":
-                    "application/json",
-                    "Prefer":
-                    "return=representation"
-                },
-                body: JSON.stringify({
-                    invitation_status:
-                    "Accepted"
-                })
-            }
-        );
+    assignment.invitation_status = "Accepted";
 
-        assignment.invitation_status =
-        "Accepted";
-
-        // Refresh the signed URL before re-rendering the review form
-        // in case time has passed since the initial load.
-        await refreshSignedUrl();
-
-        renderReviewForm();
-
-    }
-    catch(error) {
-
-        console.error(error);
-
-        alert("Unable to accept invitation.");
-    }
+    await renderPage();
 }
 
 async function declineInvitation() {
 
-    try {
+    await fetch(
+        `${SUPABASE_URL}/rest/v1/review_assignments?review_token=eq.${encodeURIComponent(token)}`,
+        {
+            method: "PATCH",
+            headers: {
+                apikey: SUPABASE_KEY,
+                Authorization: `Bearer ${SUPABASE_KEY}`,
+                "Content-Type": "application/json",
+                "Prefer": "return=representation"
+            },
+            body: JSON.stringify({
+                invitation_status: "Declined"
+            })
+        }
+    );
 
-        await fetch(
-            `${SUPABASE_URL}/rest/v1/review_assignments?review_token=eq.${encodeURIComponent(token)}`,
-            {
-                method: "PATCH",
-                headers: {
-                    apikey: SUPABASE_KEY,
-                    Authorization:
-                    `Bearer ${SUPABASE_KEY}`,
-                    "Content-Type":
-                    "application/json",
-                    "Prefer":
-                    "return=representation"
-                },
-                body: JSON.stringify({
-                    invitation_status:
-                    "Declined"
-                })
-            }
-        );
+    assignment.invitation_status = "Declined";
 
-        assignment.invitation_status =
-        "Declined";
-
-        renderPage();
-
-    }
-    catch(error) {
-
-        console.error(error);
-
-        alert("Unable to decline invitation.");
-    }
+    await renderPage();
 }
 
-// ─── Review Form ──────────────────────────────────────────────────────────────
+/* =========================
+   REVIEW FORM
+========================= */
 
 function renderReviewForm() {
 
@@ -343,125 +247,95 @@ function renderReviewForm() {
     document.getElementById("app");
 
     app.innerHTML = `
+        <h2>${assignment.manuscript_title}</h2>
 
-    <h2>${assignment.manuscript_title}</h2>
+        <p><b>Article ID:</b> ${assignment.article_id}</p>
 
-    <p>
-    <strong>Article ID:</strong>
-    ${assignment.article_id}
-    </p>
+        <label>Recommendation</label>
+        <br>
 
-    ${pdfLinksHtml()}
+        <select id="rec">
+            <option value="Accept">Accept</option>
+            <option value="Minor Revision">Minor Revision</option>
+            <option value="Major Revision">Major Revision</option>
+            <option value="Reject">Reject</option>
+        </select>
 
-    <label>Recommendation</label>
-    <br>
-    <select id="recommendation">
-        <option value="Accept">Accept</option>
-        <option value="Minor Revision">Minor Revision</option>
-        <option value="Major Revision">Major Revision</option>
-        <option value="Reject">Reject</option>
-    </select>
+        <br><br>
 
-    <br><br>
+        <label>Comments to Author</label>
+        <br>
 
-    <label>Comments to Author</label>
-    <br>
-    <textarea
-        id="comments_author"
-        rows="8"
-        style="width:100%;"></textarea>
+        <textarea id="author"
+            rows="8"
+            style="width:100%;"></textarea>
 
-    <br><br>
+        <br><br>
 
-    <label>Confidential Comments to Editor</label>
-    <br>
-    <textarea
-        id="confidential_comments"
-        rows="6"
-        style="width:100%;"></textarea>
+        <label>Confidential Comments to Editor</label>
+        <br>
 
-    <br><br>
+        <textarea id="editor"
+            rows="6"
+            style="width:100%;"></textarea>
 
-    <label>Overall Score (1–10)</label>
-    <br>
-    <input
-        type="number"
-        id="score"
-        min="1"
-        max="10">
+        <br><br>
 
-    <br><br>
+        <label>Score (1–10)</label>
+        <br>
 
-    <button onclick="submitReview()">
-    Submit Review
-    </button>
+        <input type="number"
+            id="score"
+            min="1"
+            max="10">
 
+        <br><br>
+
+        <button onclick="submitReview()">
+            Submit Review
+        </button>
     `;
 }
 
-// ─── Review Submission ────────────────────────────────────────────────────────
+/* =========================
+   SUBMIT REVIEW
+========================= */
 
 async function submitReview() {
 
-    const recommendation =
-    document.getElementById("recommendation").value;
+    const rec =
+    document.getElementById("rec").value;
 
-    const commentsAuthor =
-    document.getElementById("comments_author").value;
+    const author =
+    document.getElementById("author").value;
 
-    const confidentialComments =
-    document.getElementById("confidential_comments").value;
+    const editor =
+    document.getElementById("editor").value;
 
     const score =
     document.getElementById("score").value;
 
     try {
 
-        const reviewResponse =
         await fetch(
             `${SUPABASE_URL}/rest/v1/reviews`,
             {
                 method: "POST",
                 headers: {
                     apikey: SUPABASE_KEY,
-                    Authorization:
-                    `Bearer ${SUPABASE_KEY}`,
-                    "Content-Type":
-                    "application/json"
+                    Authorization: `Bearer ${SUPABASE_KEY}`,
+                    "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
-                    article_id:
-                    assignment.article_id,
-
-                    reviewer_email:
-                    assignment.reviewer_email,
-
-                    recommendation:
-                    recommendation,
-
-                    comments_to_author:
-                    commentsAuthor,
-
-                    confidential_comments:
-                    confidentialComments,
-
-                    score:
-                    score
+                    article_id: assignment.article_id,
+                    reviewer_email: assignment.reviewer_email,
+                    recommendation: rec,
+                    comments_to_author: author,
+                    confidential_comments: editor,
+                    score: score
                 })
             }
         );
-
-        if (!reviewResponse.ok) {
-
-            const error =
-            await reviewResponse.text();
-
-            console.error(error);
-
-            alert("Failed to submit review.");
-
-            return;
-        }
 
         await fetch(
             `${SUPABASE_URL}/rest/v1/review_assignments?review_token=eq.${encodeURIComponent(token)}`,
@@ -469,32 +343,25 @@ async function submitReview() {
                 method: "PATCH",
                 headers: {
                     apikey: SUPABASE_KEY,
-                    Authorization:
-                    `Bearer ${SUPABASE_KEY}`,
-                    "Content-Type":
-                    "application/json",
-                    "Prefer":
-                    "return=representation"
+                    Authorization: `Bearer ${SUPABASE_KEY}`,
+                    "Content-Type": "application/json",
+                    "Prefer": "return=representation"
                 },
                 body: JSON.stringify({
                     review_submitted: true,
-                    invitation_status:
-                    "Submitted"
+                    invitation_status: "Submitted"
                 })
             }
         );
 
-        document.getElementById("app")
-        .innerHTML = `
-        <h2>Review Submitted Successfully</h2>
-        <p>Thank you for your review.</p>
-        `;
+        document.getElementById("app").innerHTML =
+        "<h2>Review submitted successfully</h2>";
 
     }
     catch(error) {
 
         console.error(error);
 
-        alert("Error while submitting review.");
+        alert("Submission failed");
     }
 }
