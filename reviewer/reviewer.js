@@ -116,6 +116,7 @@ function renderPage() {
         </p>
 
         <p>
+        <strong>Abstract:</strong>
         ${assignment.abstract || ""}
         </p>
 
