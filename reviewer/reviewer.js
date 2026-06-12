@@ -55,7 +55,7 @@ async function loadAssignment() {
 
         assignment = data[0];
 
-        await renderPage();
+        renderPage();
 
     }
     catch(error) {
@@ -67,46 +67,7 @@ async function loadAssignment() {
     }
 }
 
-/* =========================
-   SECURE PDF SIGNED URL
-========================= */
-
-async function getSignedPdfUrl(filePath) {
-
-    try {
-
-        const response = await fetch(
-            `${SUPABASE_URL}/storage/v1/object/sign/manuscripts/${encodeURIComponent(filePath)}`,
-            {
-                method: "POST",
-                headers: {
-                    apikey: SUPABASE_KEY,
-                    Authorization: `Bearer ${SUPABASE_KEY}`,
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    expiresIn: 3600
-                })
-            }
-        );
-
-        const data = await response.json();
-
-        return data.signedURL || null;
-
-    } catch (error) {
-
-        console.error("PDF signing error:", error);
-
-        return null;
-    }
-}
-
-/* =========================
-   MAIN RENDER
-========================= */
-
-async function renderPage() {
+function renderPage() {
 
     const app =
     document.getElementById("app");
@@ -114,8 +75,13 @@ async function renderPage() {
     if (assignment.review_submitted) {
 
         app.innerHTML = `
-            <h2>Review Already Submitted</h2>
-            <p>Thank you for your review.</p>
+        <h2>
+        Review Already Submitted
+        </h2>
+
+        <p>
+        Thank you for completing your review.
+        </p>
         `;
 
         return;
@@ -124,218 +90,73 @@ async function renderPage() {
     if (assignment.invitation_status === "Declined") {
 
         app.innerHTML = `
-            <h2>Invitation Declined</h2>
+        <h2>
+        Invitation Declined
+        </h2>
+
+        <p>
+        Thank you for your response.
+        </p>
         `;
 
         return;
     }
-
-    /* ===== PENDING STATE ===== */
 
     if (assignment.invitation_status === "Pending") {
 
-        let pdfButtons = "";
-
-        if (assignment.pdf_path) {
-
-            const signedUrl =
-            await getSignedPdfUrl(
-                assignment.pdf_path
-            );
-
-            if (signedUrl) {
-
-                pdfButtons = `
-                    <p>
-                        <a href="${signedUrl}" target="_blank">
-                            📄 View Manuscript
-                        </a>
-                    </p>
-
-                    <p>
-                        <a href="${signedUrl}" download>
-                            ⬇ Download PDF
-                        </a>
-                    </p>
-                `;
-            }
-        }
-
         app.innerHTML = `
-            <h2>${assignment.manuscript_title}</h2>
 
-            <p><b>Article ID:</b> ${assignment.article_id}</p>
+        <h2>
+        ${assignment.manuscript_title}
+        </h2>
 
-            <p>${assignment.abstract || ""}</p>
+        <p>
+        <strong>Article ID:</strong>
+        ${assignment.article_id}
+        </p>
 
-            ${pdfButtons}
+        <p>
+        <strong>Abstract:</strong>
+        ${assignment.abstract || ""}
+        </p>
 
-            <button onclick="acceptInvitation()">
-                Accept Invitation
-            </button>
+        ${assignment.manuscript_pdf_url ? `
 
-            <button onclick="declineInvitation()">
-                Decline Invitation
-            </button>
+        <p>
+        <a href="${assignment.manuscript_pdf_url}"
+           target="_blank">
+           📄 View Manuscript
+        </a>
+        </p>
+
+        <p>
+        <a href="${assignment.manuscript_pdf_url}"
+           download>
+           ⬇ Download PDF
+        </a>
+        </p>
+
+        ` : ""}
+
+        <button onclick="acceptInvitation()">
+        Accept Invitation
+        </button>
+
+        <button onclick="declineInvitation()">
+        Decline Invitation
+        </button>
+
         `;
 
         return;
     }
-
-    /* ===== REVIEW FORM ===== */
 
     renderReviewForm();
 }
 
-/* =========================
-   ACCEPT / DECLINE
-========================= */
-
 async function acceptInvitation() {
 
-    await fetch(
-        `${SUPABASE_URL}/rest/v1/review_assignments?review_token=eq.${encodeURIComponent(token)}`,
-        {
-            method: "PATCH",
-            headers: {
-                apikey: SUPABASE_KEY,
-                Authorization: `Bearer ${SUPABASE_KEY}`,
-                "Content-Type": "application/json",
-                "Prefer": "return=representation"
-            },
-            body: JSON.stringify({
-                invitation_status: "Accepted"
-            })
-        }
-    );
-
-    assignment.invitation_status = "Accepted";
-
-    await renderPage();
-}
-
-async function declineInvitation() {
-
-    await fetch(
-        `${SUPABASE_URL}/rest/v1/review_assignments?review_token=eq.${encodeURIComponent(token)}`,
-        {
-            method: "PATCH",
-            headers: {
-                apikey: SUPABASE_KEY,
-                Authorization: `Bearer ${SUPABASE_KEY}`,
-                "Content-Type": "application/json",
-                "Prefer": "return=representation"
-            },
-            body: JSON.stringify({
-                invitation_status: "Declined"
-            })
-        }
-    );
-
-    assignment.invitation_status = "Declined";
-
-    await renderPage();
-}
-
-/* =========================
-   REVIEW FORM
-========================= */
-
-function renderReviewForm() {
-
-    const app =
-    document.getElementById("app");
-
-    app.innerHTML = `
-        <h2>${assignment.manuscript_title}</h2>
-
-        <p><b>Article ID:</b> ${assignment.article_id}</p>
-
-        <label>Recommendation</label>
-        <br>
-
-        <select id="rec">
-            <option value="Accept">Accept</option>
-            <option value="Minor Revision">Minor Revision</option>
-            <option value="Major Revision">Major Revision</option>
-            <option value="Reject">Reject</option>
-        </select>
-
-        <br><br>
-
-        <label>Comments to Author</label>
-        <br>
-
-        <textarea id="author"
-            rows="8"
-            style="width:100%;"></textarea>
-
-        <br><br>
-
-        <label>Confidential Comments to Editor</label>
-        <br>
-
-        <textarea id="editor"
-            rows="6"
-            style="width:100%;"></textarea>
-
-        <br><br>
-
-        <label>Score (1–10)</label>
-        <br>
-
-        <input type="number"
-            id="score"
-            min="1"
-            max="10">
-
-        <br><br>
-
-        <button onclick="submitReview()">
-            Submit Review
-        </button>
-    `;
-}
-
-/* =========================
-   SUBMIT REVIEW
-========================= */
-
-async function submitReview() {
-
-    const rec =
-    document.getElementById("rec").value;
-
-    const author =
-    document.getElementById("author").value;
-
-    const editor =
-    document.getElementById("editor").value;
-
-    const score =
-    document.getElementById("score").value;
-
     try {
-
-        await fetch(
-            `${SUPABASE_URL}/rest/v1/reviews`,
-            {
-                method: "POST",
-                headers: {
-                    apikey: SUPABASE_KEY,
-                    Authorization: `Bearer ${SUPABASE_KEY}`,
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    article_id: assignment.article_id,
-                    reviewer_email: assignment.reviewer_email,
-                    recommendation: rec,
-                    comments_to_author: author,
-                    confidential_comments: editor,
-                    score: score
-                })
-            }
-        );
 
         await fetch(
             `${SUPABASE_URL}/rest/v1/review_assignments?review_token=eq.${encodeURIComponent(token)}`,
@@ -343,25 +164,296 @@ async function submitReview() {
                 method: "PATCH",
                 headers: {
                     apikey: SUPABASE_KEY,
-                    Authorization: `Bearer ${SUPABASE_KEY}`,
-                    "Content-Type": "application/json",
-                    "Prefer": "return=representation"
+                    Authorization:
+                    `Bearer ${SUPABASE_KEY}`,
+                    "Content-Type":
+                    "application/json",
+                    "Prefer":
+                    "return=representation"
                 },
                 body: JSON.stringify({
-                    review_submitted: true,
-                    invitation_status: "Submitted"
+                    invitation_status:
+                    "Accepted"
                 })
             }
         );
 
-        document.getElementById("app").innerHTML =
-        "<h2>Review submitted successfully</h2>";
+        assignment.invitation_status =
+        "Accepted";
+
+        renderReviewForm();
 
     }
     catch(error) {
 
         console.error(error);
 
-        alert("Submission failed");
+        alert(
+        "Unable to accept invitation."
+        );
+    }
+}
+
+async function declineInvitation() {
+
+    try {
+
+        await fetch(
+            `${SUPABASE_URL}/rest/v1/review_assignments?review_token=eq.${encodeURIComponent(token)}`,
+            {
+                method: "PATCH",
+                headers: {
+                    apikey: SUPABASE_KEY,
+                    Authorization:
+                    `Bearer ${SUPABASE_KEY}`,
+                    "Content-Type":
+                    "application/json",
+                    "Prefer":
+                    "return=representation"
+                },
+                body: JSON.stringify({
+                    invitation_status:
+                    "Declined"
+                })
+            }
+        );
+
+        assignment.invitation_status =
+        "Declined";
+
+        renderPage();
+
+    }
+    catch(error) {
+
+        console.error(error);
+
+        alert(
+        "Unable to decline invitation."
+        );
+    }
+}
+
+function renderReviewForm() {
+
+    const app =
+    document.getElementById("app");
+
+    app.innerHTML = `
+
+    <h2>
+    ${assignment.manuscript_title}
+    </h2>
+
+    <p>
+    <strong>Article ID:</strong>
+    ${assignment.article_id}
+    </p>
+
+    ${assignment.manuscript_pdf_url ? `
+
+    <p>
+    <a href="${assignment.manuscript_pdf_url}"
+       target="_blank">
+       📄 View Manuscript
+    </a>
+    </p>
+
+    <p>
+    <a href="${assignment.manuscript_pdf_url}"
+       download>
+       ⬇ Download PDF
+    </a>
+    </p>
+
+    ` : ""}
+
+    <label>
+    Recommendation
+    </label>
+
+    <br>
+
+    <select id="recommendation">
+
+        <option value="Accept">
+        Accept
+        </option>
+
+        <option value="Minor Revision">
+        Minor Revision
+        </option>
+
+        <option value="Major Revision">
+        Major Revision
+        </option>
+
+        <option value="Reject">
+        Reject
+        </option>
+
+    </select>
+
+    <br><br>
+
+    <label>
+    Comments to Author
+    </label>
+
+    <br>
+
+    <textarea
+        id="comments_author"
+        rows="8"
+        style="width:100%;"></textarea>
+
+    <br><br>
+
+    <label>
+    Confidential Comments to Editor
+    </label>
+
+    <br>
+
+    <textarea
+        id="confidential_comments"
+        rows="6"
+        style="width:100%;"></textarea>
+
+    <br><br>
+
+    <label>
+    Overall Score (1-10)
+    </label>
+
+    <br>
+
+    <input
+        type="number"
+        id="score"
+        min="1"
+        max="10">
+
+    <br><br>
+
+    <button onclick="submitReview()">
+    Submit Review
+    </button>
+
+    `;
+}
+
+async function submitReview() {
+
+    const recommendation =
+    document.getElementById(
+    "recommendation").value;
+
+    const commentsAuthor =
+    document.getElementById(
+    "comments_author").value;
+
+    const confidentialComments =
+    document.getElementById(
+    "confidential_comments").value;
+
+    const score =
+    document.getElementById(
+    "score").value;
+
+    try {
+
+        const reviewResponse =
+        await fetch(
+            `${SUPABASE_URL}/rest/v1/reviews`,
+            {
+                method: "POST",
+                headers: {
+                    apikey: SUPABASE_KEY,
+                    Authorization:
+                    `Bearer ${SUPABASE_KEY}`,
+                    "Content-Type":
+                    "application/json"
+                },
+                body: JSON.stringify({
+
+                    article_id:
+                    assignment.article_id,
+
+                    reviewer_email:
+                    assignment.reviewer_email,
+
+                    recommendation:
+                    recommendation,
+
+                    comments_to_author:
+                    commentsAuthor,
+
+                    confidential_comments:
+                    confidentialComments,
+
+                    score:
+                    score
+
+                })
+            }
+        );
+
+        if (!reviewResponse.ok) {
+
+            const error =
+            await reviewResponse.text();
+
+            console.error(error);
+
+            alert(
+            "Failed to submit review."
+            );
+
+            return;
+        }
+
+        await fetch(
+            `${SUPABASE_URL}/rest/v1/review_assignments?review_token=eq.${encodeURIComponent(token)}`,
+            {
+                method: "PATCH",
+                headers: {
+                    apikey: SUPABASE_KEY,
+                    Authorization:
+                    `Bearer ${SUPABASE_KEY}`,
+                    "Content-Type":
+                    "application/json",
+                    "Prefer":
+                    "return=representation"
+                },
+                body: JSON.stringify({
+                    review_submitted: true,
+                    invitation_status:
+                    "Submitted"
+                })
+            }
+        );
+
+        document.getElementById("app")
+        .innerHTML = `
+
+        <h2>
+        Review Submitted Successfully
+        </h2>
+
+        <p>
+        Thank you for your review.
+        </p>
+
+        `;
+
+    }
+    catch(error) {
+
+        console.error(error);
+
+        alert(
+        "Error while submitting review."
+        );
     }
 }
