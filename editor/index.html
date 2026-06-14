@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0">
+
+<title>JMIC Editorial Dashboard</title>
+
+<link rel="stylesheet" href="../style.css">
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>JMIC Editorial Dashboard</h1>
+
+<div id="loginSection">
+
+<h2>Editor Login</h2>
+
+<input
+type="email"
+id="email"
+placeholder="Editor Email">
+
+<input
+type="password"
+id="password"
+placeholder="Password">
+
+<button onclick="login()">
+Login
+</button>
+
+</div>
+
+<div id="dashboard"
+style="display:none;">
+
+<div class="stats">
+
+<div class="card">
+<h3 id="submittedCount">0</h3>
+<p>Total Manuscripts</p>
+</div>
+
+<div class="card">
+<h3 id="underReviewCount">0</h3>
+<p>Under Review</p>
+</div>
+
+<div class="card">
+<h3 id="acceptedCount">0</h3>
+<p>Accepted</p>
+</div>
+
+<div class="card">
+<h3 id="rejectedCount">0</h3>
+<p>Rejected</p>
+</div>
+
+</div>
+
+<h2>Manuscripts</h2>
+
+<table id="manuscriptTable">
+
+<thead>
+
+<tr>
+
+<th>Article ID</th>
+
+<th>Title</th>
+
+<th>Status</th>
+
+<th>Submission Date</th>
+
+<th>Action</th>
+
+</tr>
+
+</thead>
+
+<tbody></tbody>
+
+</table>
+
+</div>
+
+</div>
+
+<script src="editor.js"></script>
+
+</body>
+</html>
