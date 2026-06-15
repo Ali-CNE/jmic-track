@@ -120,23 +120,23 @@ function renderPage() {
         ${assignment.abstract || ""}
         </p>
 
-        ${assignment.manuscript_pdf_url ? `
+        ${assignment.pdf_path ? `
 
-        <p>
-        <a href="${assignment.manuscript_pdf_url}"
-           target="_blank">
-           📄 View Manuscript
-        </a>
-        </p>
+<p>
+<a href="${SUPABASE_URL}/storage/v1/object/public/manuscripts/${assignment.pdf_path}"
+   target="_blank">
+   📄 View Manuscript
+</a>
+</p>
 
-        <p>
-        <a href="${assignment.manuscript_pdf_url}"
-           download>
-           ⬇ Download PDF
-        </a>
-        </p>
+<p>
+<a href="${SUPABASE_URL}/storage/v1/object/public/manuscripts/${assignment.pdf_path}"
+   download>
+   ⬇ Download PDF
+</a>
+</p>
 
-        ` : ""}
+` : ""}
 
         <button onclick="acceptInvitation()">
         Accept Invitation
@@ -250,23 +250,23 @@ function renderReviewForm() {
     ${assignment.article_id}
     </p>
 
-    ${assignment.manuscript_pdf_url ? `
+    ${assignment.pdf_path ? `
 
-    <p>
-    <a href="${assignment.manuscript_pdf_url}"
-       target="_blank">
-       📄 View Manuscript
-    </a>
-    </p>
+<p>
+<a href="${SUPABASE_URL}/storage/v1/object/public/manuscripts/${assignment.pdf_path}"
+   target="_blank">
+   📄 View Manuscript
+</a>
+</p>
 
-    <p>
-    <a href="${assignment.manuscript_pdf_url}"
-       download>
-       ⬇ Download PDF
-    </a>
-    </p>
+<p>
+<a href="${SUPABASE_URL}/storage/v1/object/public/manuscripts/${assignment.pdf_path}"
+   download>
+   ⬇ Download PDF
+</a>
+</p>
 
-    ` : ""}
+` : ""}
 
     <label>
     Recommendation
