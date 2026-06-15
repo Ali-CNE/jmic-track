@@ -61,7 +61,7 @@ async function loadManuscript() {
     if (manuscript.pdf_path) {
 
         const pdfURL =
-        `${SUPABASE_URL}/storage/v1/object/public/${manuscript.pdf_path}`;
+        `${SUPABASE_URL}/storage/v1/object/public/manuscripts/${manuscript.pdf_path}`;
 
         pdfButton = `
             <p>
@@ -219,6 +219,8 @@ async function assignReviewer() {
 
                 manuscript_title:
                 manuscript.title,
+
+		abstract: manuscript.abstract,
 
                 reviewer_email:
                 email,
