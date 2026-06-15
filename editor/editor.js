@@ -24,6 +24,15 @@ return;
 
 }
 
+  function logout() {
+
+    sessionStorage.removeItem(
+        "editor"
+    );
+
+    location.reload();
+}
+
 try {
 
 const response =
@@ -54,8 +63,8 @@ currentEditor =
 data[0];
 
 sessionStorage.setItem(
-"editor",
-JSON.stringify(currentEditor)
+"editor_email",
+currentEditor.editor_email
 );
 
 document
