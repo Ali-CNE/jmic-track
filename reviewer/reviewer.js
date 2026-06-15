@@ -136,6 +136,25 @@ function renderPage() {
         </a>
         </p>
 
+        manuscript = data[0];
+
+    let pdfButton = "";
+
+    if (manuscript.pdf_path) {
+
+        const pdfURL =
+        `${SUPABASE_URL}/storage/v1/object/public/manuscripts/${manuscript.pdf_path}`;
+
+        pdfButton = `
+            <p>
+            <a href="${pdfURL}"
+            target="_blank">
+            📄 View Manuscript
+            </a>
+            </p>
+        `;
+    }
+
         ` : ""}
 
         <button onclick="acceptInvitation()">
