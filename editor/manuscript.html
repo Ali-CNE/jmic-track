@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Manuscript Management</title>
+
+<link rel="stylesheet" href="../style.css">
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>Manuscript Management</h1>
+
+<div id="manuscriptInfo" class="card">
+Loading manuscript...
+</div>
+
+<div class="card">
+
+<h2>Assign Reviewer</h2>
+
+<input
+type="email"
+id="reviewerEmail"
+placeholder="Reviewer Email">
+
+<input
+type="date"
+id="reviewDeadline">
+
+<button onclick="assignReviewer()">
+Assign Reviewer
+</button>
+
+</div>
+
+<div class="card">
+
+<h2>Assigned Reviewers</h2>
+
+<table id="reviewerTable">
+
+<thead>
+<tr>
+<th>Email</th>
+<th>Status</th>
+<th>Review Submitted</th>
+<th>Deadline</th>
+<th>Review Link</th>
+</tr>
+</thead>
+
+<tbody></tbody>
+
+</table>
+
+</div>
+
+<div class="card">
+
+<h2>Reviews Received</h2>
+
+<div id="reviewsContainer">
+No reviews yet.
+</div>
+
+</div>
+
+<div class="card">
+
+<h2>Editorial Decision</h2>
+
+<select id="decision">
+
+<option>Accept</option>
+<option>Minor Revision</option>
+<option>Major Revision</option>
+<option>Reject</option>
+
+</select>
+
+<br><br>
+
+<textarea
+id="decisionRemarks"
+rows="5"
+placeholder="Remarks">
+</textarea>
+
+<br><br>
+
+<button onclick="updateDecision()">
+Update Decision
+</button>
+
+</div>
+
+</div>
+
+<script src="manuscript.js"></script>
+
+</body>
+</html>

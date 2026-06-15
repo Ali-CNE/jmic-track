@@ -228,9 +228,7 @@ function openManuscript(
 articleId
 ) {
 
-alert(
-"Manuscript page coming next:\n\n"
-+ articleId
-);
+window.location.href =
+`manuscript.html?id=${encodeURIComponent(articleId)}`;
 
 }
