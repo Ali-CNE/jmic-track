@@ -67,7 +67,7 @@ async function loadManuscript() {
             <p>
             <a href="${pdfURL}"
             target="_blank">
-            View PDF
+            📄 View Manuscript
             </a>
             </p>
         `;
@@ -160,7 +160,22 @@ async function loadReviewers() {
         value="${reviewLink}"
         readonly
         style="width:100%;">
+
+<button
+onclick="copyReviewerLink('${r.review_token}')">
+Copy
+</button>
+
         </td>
+
+<td>
+
+<button
+onclick="generateReviewerEmail('${r.review_token}')">
+Generate Email
+</button>
+
+</td>
 
         `;
 
@@ -220,7 +235,8 @@ async function assignReviewer() {
                 manuscript_title:
                 manuscript.title,
 
-		abstract: manuscript.abstract,
+		abstract:
+		manuscript.abstract,
 
                 reviewer_email:
                 email,
@@ -435,4 +451,75 @@ async function updateDecision() {
     );
 
     loadManuscript();
+}
+
+function copyReviewerLink(token) {
+
+    const input =
+    document.getElementById(
+        `link_${token}`
+    );
+
+    input.select();
+
+    navigator.clipboard.writeText(
+        input.value
+    );
+
+    alert(
+        "Reviewer link copied."
+    );
+}
+
+function copyReviewerLink(token) {
+
+    const input =
+    document.getElementById(
+        `link_${token}`
+    );
+
+    navigator.clipboard.writeText(
+        input.value
+    );
+
+    alert(
+        "Reviewer link copied."
+    );
+}
+
+function generateReviewerEmail(token) {
+
+    const reviewLink =
+    `${window.location.origin}/reviewer/?token=${token}`;
+
+    const emailText = `Dear Reviewer,
+
+We would like to invite you to review the following manuscript.
+
+Article ID:
+${manuscript.article_id}
+
+Title:
+${manuscript.title}
+
+Abstract:
+${manuscript.abstract}
+
+Review Link:
+${reviewLink}
+
+Please use the above link to accept or decline the invitation.
+
+Kind regards,
+
+Editorial Office
+Journal of Materials Intelligence and Computing`;
+
+    navigator.clipboard.writeText(
+        emailText
+    );
+
+    alert(
+        "Invitation email copied to clipboard."
+    );
 }

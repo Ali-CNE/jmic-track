@@ -24,15 +24,6 @@ return;
 
 }
 
-  function logout() {
-
-    sessionStorage.removeItem(
-        "editor"
-    );
-
-    location.reload();
-}
-
 try {
 
 const response =
@@ -63,8 +54,8 @@ currentEditor =
 data[0];
 
 sessionStorage.setItem(
-"editor_email",
-currentEditor.editor_email
+"editor",
+JSON.stringify(currentEditor)
 );
 
 document
@@ -240,4 +231,11 @@ articleId
 window.location.href =
 `manuscript.html?id=${encodeURIComponent(articleId)}`;
 
+}
+
+function logout() {
+
+    sessionStorage.clear();
+
+    window.location.reload();
 }
