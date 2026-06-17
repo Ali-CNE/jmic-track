@@ -93,8 +93,8 @@ document
 .style.display = "none";
 
 document
-.getElementById("dashboard")
-.style.display = "block";
+.getElementById("dashboardHeader")
+.style.display = "flex";
 
 loadDashboard();
 
