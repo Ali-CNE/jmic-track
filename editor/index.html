@@ -10,14 +10,6 @@ content="width=device-width, initial-scale=1.0">
 
 <title>JMIC Editorial Dashboard</title>
 
-  <div style="text-align:right;">
-
-<button onclick="logout()">
-Logout
-</button>
-
-</div>
-
 <link rel="stylesheet" href="../style.css">
 
 </head>
@@ -26,10 +18,22 @@ Logout
 
 <div class="container">
 
-<div class="header">
+<div class="dashboard-header">
 <h1>Editorial Dashboard</h1>
-<p>Journal of Materials Intelligence and Computing</p>
+<p><b>Journal of Materials Intelligence and Computing</b></p>
 </div>
+
+<div>
+
+        <button onclick="openPasswordPage()">
+        Change Password
+        </button>
+
+        <button onclick="logout()">
+        Logout
+        </button>
+
+    </div>
 
 <div id="loginSection">
 

@@ -239,3 +239,9 @@ function logout() {
 
     window.location.reload();
 }
+
+function openPasswordPage() {
+
+    window.location.href =
+    "change-password.html";
+}
