@@ -10,8 +10,7 @@ content="width=device-width, initial-scale=1.0">
 
 <title>JMIC Editorial Dashboard</title>
 
-<link rel="stylesheet"
-href="../style.css">
+<link rel="stylesheet" href="../style.css">
 
 </head>
 
@@ -19,200 +18,102 @@ href="../style.css">
 
 <div class="container">
 
-    <!-- DASHBOARD HEADER (VISIBLE AFTER LOGIN) -->
+<div id="dashboardHeader"
+class="dashboard-header">
+<h1>Editorial Dashboard</h1>
+<p><b>Journal of Materials Intelligence and Computing</b></p>
+</div>
 
-    <div id="dashboardHeader"
-         class="dashboard-header"
-         style="display:none;">
+<div>
 
-        <div>
-
-            <h1>
-                Editorial Dashboard
-            </h1>
-
-            <p>
-                <strong>
-                    Journal of Materials Intelligence and Computing
-                </strong>
-            </p>
-
-        </div>
-
-        <div>
-
-            <button onclick="openPasswordPage()">
-                Change Password
-            </button>
-
-            <button onclick="logout()">
-                Logout
-            </button>
-
-        </div>
-
-    </div>
-
-    <!-- LOGIN SECTION -->
-
-    <div id="loginSection"
-         class="card">
-
-        <h2>
-            Editor Login
-        </h2>
-
-        <input
-        type="email"
-        id="email"
-        placeholder="Editor Email">
-
-        <input
-        type="password"
-        id="password"
-        placeholder="Password">
-
-        <button onclick="login()">
-            Login
+        <button onclick="openPasswordPage()">
+        Change Password
         </button>
 
-        <div id="loginMessage"></div>
+        <button onclick="logout()">
+        Logout
+        </button>
 
     </div>
 
-    <!-- DASHBOARD -->
+<div id="loginSection">
 
-    <div id="dashboard"
-         style="display:none;">
+<h2>Editor Login</h2>
 
-        <!-- STATISTICS -->
+<input
+type="email"
+id="email"
+placeholder="Editor Email">
 
-        <div class="stats">
+<input
+type="password"
+id="password"
+placeholder="Password">
 
-            <div class="card">
+<button onclick="login()">
+Login
+</button>
 
-                <h3 id="submittedCount">
-                    0
-                </h3>
+</div>
 
-                <p>
-                    Total Manuscripts
-                </p>
+<div id="dashboard"
+style="display:none;">
 
-            </div>
+<div class="stats">
 
-            <div class="card">
+<div class="card">
+<h3 id="submittedCount">0</h3>
+<p>Total Manuscripts</p>
+</div>
 
-                <h3 id="underReviewCount">
-                    0
-                </h3>
+<div class="card">
+<h3 id="underReviewCount">0</h3>
+<p>Under Review</p>
+</div>
 
-                <p>
-                    Under Review
-                </p>
+<div class="card">
+<h3 id="acceptedCount">0</h3>
+<p>Accepted</p>
+</div>
 
-            </div>
+<div class="card">
+<h3 id="rejectedCount">0</h3>
+<p>Rejected</p>
+</div>
 
-            <div class="card">
+</div>
 
-                <h3 id="acceptedCount">
-                    0
-                </h3>
+<h2>Manuscripts</h2>
 
-                <p>
-                    Accepted
-                </p>
+<table id="manuscriptTable">
 
-            </div>
+<thead>
 
-            <div class="card">
+<tr>
 
-                <h3 id="rejectedCount">
-                    0
-                </h3>
+<th>Article ID</th>
 
-                <p>
-                    Rejected
-                </p>
+<th>Title</th>
 
-            </div>
+<th>Status</th>
 
-        </div>
+<th>Submission Date</th>
 
-        <!-- QUICK ACTIONS -->
+<th>Action</th>
 
-        <div class="card">
+</tr>
 
-            <h2>
-                Editorial Management
-            </h2>
+</thead>
 
-            <p>
+<tbody></tbody>
 
-                <a href="manuscripts.html">
+</table>
 
-                    <button>
-                        Manage Manuscripts
-                    </button>
-
-                </a>
-
-            </p>
-
-        </div>
-
-        <!-- MANUSCRIPT TABLE -->
-
-        <div class="card">
-
-            <h2>
-                Recent Manuscripts
-            </h2>
-
-            <table id="manuscriptTable">
-
-                <thead>
-
-                    <tr>
-
-                        <th>
-                            Article ID
-                        </th>
-
-                        <th>
-                            Title
-                        </th>
-
-                        <th>
-                            Status
-                        </th>
-
-                        <th>
-                            Submission Date
-                        </th>
-
-                        <th>
-                            Action
-                        </th>
-
-                    </tr>
-
-                </thead>
-
-                <tbody>
-
-                </tbody>
-
-            </table>
-
-        </div>
-
-    </div>
+</div>
 
 </div>
 
 <script src="editor.js"></script>
 
 </body>
-
 </html>
