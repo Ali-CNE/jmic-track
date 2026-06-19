@@ -1,422 +1,218 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0">
+
 <title>JMIC Editorial Dashboard</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;600&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-<style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  :root {
-    --brand:       #185FA5;
-    --brand-light: #E6F1FB;
-    --brand-mid:   #378ADD;
-    --ink:         #1a1f2e;
-    --ink-muted:   #4a5568;
-    --ink-faint:   #718096;
-    --surface:     #f7f8fc;
-    --card:        #ffffff;
-    --border:      #dde3ef;
-    --radius:      10px;
-    --shadow:      0 1px 4px rgba(0,0,0,.06), 0 4px 16px rgba(0,0,0,.05);
-    --success-bg:  #eaf3de;
-    --success-fg:  #3B6D11;
-    --danger-bg:   #FCEBEB;
-    --danger-fg:   #A32D2D;
-    --warn-bg:     #FAEEDA;
-    --warn-fg:     #854F0B;
-    --info-bg:     #E6F1FB;
-    --info-fg:     #185FA5;
-  }
+<link rel="stylesheet"
+href="../style.css">
 
-  body {
-    font-family: 'DM Sans', sans-serif;
-    background: var(--surface);
-    color: var(--ink);
-    min-height: 100vh;
-  }
-
-  /* ── TOP NAV ── */
-  .topnav {
-    position: sticky; top: 0; z-index: 100;
-    background: var(--card);
-    border-bottom: 1px solid var(--border);
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 0 2rem;
-    height: 60px;
-  }
-  .topnav-brand {
-    display: flex; align-items: center; gap: 10px;
-    text-decoration: none;
-  }
-  .topnav-logo {
-    width: 32px; height: 32px; border-radius: 6px;
-    background: var(--brand);
-    display: flex; align-items: center; justify-content: center;
-    color: #fff; font-family: 'Lora', serif; font-size: 13px; font-weight: 600;
-    letter-spacing: -0.5px;
-  }
-  .topnav-name {
-    font-family: 'Lora', serif; font-size: 17px; font-weight: 600;
-    color: var(--ink); letter-spacing: -0.2px;
-  }
-  .topnav-right {
-    display: flex; align-items: center; gap: 12px;
-  }
-  .editor-badge {
-    font-size: 13px; color: var(--ink-faint);
-    display: flex; align-items: center; gap: 6px;
-  }
-  .editor-avatar {
-    width: 30px; height: 30px; border-radius: 50%;
-    background: var(--brand-light);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 12px; font-weight: 600; color: var(--brand);
-  }
-  .btn-logout {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 6px 14px; border-radius: 6px;
-    border: 1px solid var(--border);
-    background: transparent; cursor: pointer;
-    font-family: 'DM Sans', sans-serif; font-size: 13px;
-    color: var(--ink-muted); transition: background .15s, color .15s;
-  }
-  .btn-logout:hover { background: var(--danger-bg); color: var(--danger-fg); border-color: #f7c1c1; }
-
-  /* ── PAGE WRAPPER ── */
-  .page { max-width: 1100px; margin: 0 auto; padding: 2.5rem 2rem 4rem; }
-
-  /* ── LOGIN CARD ── */
-  #loginSection {
-    max-width: 420px; margin: 6rem auto 0;
-    background: var(--card); border: 1px solid var(--border);
-    border-radius: var(--radius); box-shadow: var(--shadow);
-    padding: 2.5rem;
-  }
-  #loginSection .login-header {
-    text-align: center; margin-bottom: 2rem;
-  }
-  #loginSection .login-header .logo-lg {
-    width: 52px; height: 52px; border-radius: 10px;
-    background: var(--brand); margin: 0 auto 1rem;
-    display: flex; align-items: center; justify-content: center;
-    color: #fff; font-family: 'Lora', serif; font-size: 20px; font-weight: 600;
-  }
-  #loginSection .login-header h2 {
-    font-family: 'Lora', serif; font-size: 22px; font-weight: 600;
-    color: var(--ink); margin-bottom: 4px;
-  }
-  #loginSection .login-header p { font-size: 14px; color: var(--ink-faint); }
-  .form-group { margin-bottom: 1rem; }
-  .form-group label { display: block; font-size: 13px; font-weight: 500; color: var(--ink-muted); margin-bottom: 6px; }
-  .form-group input {
-    width: 100%; padding: 10px 12px; border-radius: 7px;
-    border: 1px solid var(--border); background: var(--surface);
-    font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--ink);
-    outline: none; transition: border-color .15s, box-shadow .15s;
-  }
-  .form-group input:focus { border-color: var(--brand-mid); box-shadow: 0 0 0 3px rgba(55,138,221,.12); }
-  .btn-primary {
-    width: 100%; padding: 11px; border-radius: 7px;
-    background: var(--brand); border: none; cursor: pointer;
-    font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 500;
-    color: #fff; transition: background .15s;
-  }
-  .btn-primary:hover { background: #0c447c; }
-
-  /* ── DASHBOARD ── */
-  #dashboard { display: none; }
-  .dash-header { margin-bottom: 2rem; }
-  .dash-header h1 {
-    font-family: 'Lora', serif; font-size: 26px; font-weight: 600;
-    color: var(--ink); letter-spacing: -0.3px;
-  }
-  .dash-header p { font-size: 14px; color: var(--ink-faint); margin-top: 3px; }
-
-  /* ── STAT CARDS ── */
-  .stats {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-    gap: 16px; margin-bottom: 2.5rem;
-  }
-  .stat-card {
-    background: var(--card); border: 1px solid var(--border);
-    border-radius: var(--radius); padding: 1.25rem 1.5rem;
-    display: flex; flex-direction: column; gap: 6px;
-  }
-  .stat-card .stat-label {
-    font-size: 12px; font-weight: 500; text-transform: uppercase;
-    letter-spacing: 0.06em; color: var(--ink-faint);
-  }
-  .stat-card .stat-value {
-    font-size: 32px; font-weight: 600; line-height: 1;
-    font-family: 'Lora', serif; color: var(--ink);
-  }
-  .stat-card .stat-sub {
-    font-size: 12px; color: var(--ink-faint);
-  }
-  .stat-card.accent-blue  { border-top: 3px solid var(--brand); }
-  .stat-card.accent-green { border-top: 3px solid #639922; }
-  .stat-card.accent-red   { border-top: 3px solid #E24B4A; }
-  .stat-card.accent-amber { border-top: 3px solid #BA7517; }
-
-  /* ── MANUSCRIPT TABLE ── */
-  .table-section {
-    background: var(--card); border: 1px solid var(--border);
-    border-radius: var(--radius); overflow: hidden;
-  }
-  .table-section-header {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border);
-  }
-  .table-section-header h2 {
-    font-family: 'Lora', serif; font-size: 18px; font-weight: 600; color: var(--ink);
-  }
-  .table-filter {
-    display: flex; gap: 8px;
-  }
-  .filter-btn {
-    padding: 5px 12px; border-radius: 5px; border: 1px solid var(--border);
-    background: transparent; font-size: 12px; font-weight: 500; cursor: pointer;
-    color: var(--ink-muted); transition: all .15s;
-  }
-  .filter-btn.active, .filter-btn:hover {
-    background: var(--brand-light); color: var(--brand); border-color: #b5d4f4;
-  }
-
-  table {
-    width: 100%; border-collapse: collapse; font-size: 14px;
-  }
-  thead th {
-    padding: 10px 1.5rem; text-align: left;
-    font-size: 11px; font-weight: 600; text-transform: uppercase;
-    letter-spacing: 0.07em; color: var(--ink-faint);
-    background: var(--surface); border-bottom: 1px solid var(--border);
-  }
-  tbody tr { border-bottom: 1px solid var(--border); transition: background .1s; }
-  tbody tr:last-child { border-bottom: none; }
-  tbody tr:hover { background: var(--surface); }
-  tbody td { padding: 14px 1.5rem; color: var(--ink); vertical-align: middle; }
-  .td-id { font-family: monospace; font-size: 12px; color: var(--ink-faint); }
-  .td-title { font-weight: 500; max-width: 320px; }
-  .td-title small { display: block; font-weight: 400; color: var(--ink-faint); font-size: 12px; margin-top: 2px; }
-
-  /* ── STATUS BADGES ── */
-  .badge {
-    display: inline-flex; align-items: center; gap: 4px;
-    padding: 3px 10px; border-radius: 20px;
-    font-size: 11px; font-weight: 600; letter-spacing: 0.03em;
-    white-space: nowrap;
-  }
-  .badge-submitted  { background: var(--info-bg);    color: var(--info-fg); }
-  .badge-review     { background: var(--warn-bg);    color: var(--warn-fg); }
-  .badge-accepted   { background: var(--success-bg); color: var(--success-fg); }
-  .badge-rejected   { background: var(--danger-bg);  color: var(--danger-fg); }
-  .badge-revision   { background: #F3E8FF;            color: #6B21A8; }
-
-  /* ── ACTION BUTTON ── */
-  .btn-action {
-    padding: 5px 13px; border-radius: 5px;
-    border: 1px solid var(--border); background: transparent;
-    font-size: 12px; font-weight: 500; cursor: pointer;
-    color: var(--ink-muted); font-family: 'DM Sans', sans-serif;
-    transition: all .15s;
-  }
-  .btn-action:hover { background: var(--brand-light); color: var(--brand); border-color: #b5d4f4; }
-
-  /* ── EMPTY STATE ── */
-  .empty-state { padding: 3rem 1.5rem; text-align: center; color: var(--ink-faint); font-size: 14px; }
-
-  @media (max-width: 640px) {
-    .topnav { padding: 0 1rem; }
-    .page { padding: 1.5rem 1rem 3rem; }
-    .topnav-name { display: none; }
-    thead th:nth-child(4), tbody td:nth-child(4),
-    thead th:nth-child(5), tbody td:nth-child(5) { display: none; }
-  }
-</style>
 </head>
+
 <body>
 
-<!-- TOP NAV (always visible) -->
-<nav class="topnav">
-  <a href="#" class="topnav-brand">
-    <div class="topnav-logo">J</div>
-    <span class="topnav-name">JMIC Editorial</span>
-  </a>
-  <div class="topnav-right" id="navRight" style="display:none;">
-    <div class="editor-badge">
-      <div class="editor-avatar" id="editorAvatar">E</div>
-      <span id="editorEmail" style="display:none;"></span>
-    </div>
-    <button class="btn-logout" onclick="logout()">Sign out</button>
-  </div>
-</nav>
+<div class="container">
 
-<div class="page">
+    <!-- DASHBOARD HEADER (VISIBLE AFTER LOGIN) -->
 
-  <!-- LOGIN -->
-  <div id="loginSection">
-    <div class="login-header">
-      <div class="logo-lg">J</div>
-      <h2>Editor sign in</h2>
-      <p>Journal of Materials Informatics &amp; Computation</p>
-    </div>
-    <div class="form-group">
-      <label for="email">Email address</label>
-      <input type="email" id="email" placeholder="editor@institution.edu" autocomplete="username">
-    </div>
-    <div class="form-group">
-      <label for="password">Password</label>
-      <input type="password" id="password" placeholder="••••••••" autocomplete="current-password">
-    </div>
-    <button class="btn-primary" onclick="login()">Sign in to dashboard</button>
-  </div>
+    <div id="dashboardHeader"
+         class="dashboard-header"
+         style="display:none;">
 
-  <!-- DASHBOARD -->
-  <div id="dashboard">
-    <div class="dash-header">
-      <h1>Manuscript dashboard</h1>
-      <p id="dashSubtitle">Overview of all submissions</p>
-    </div>
+        <div>
 
-    <div class="stats">
-      <div class="stat-card accent-blue">
-        <div class="stat-label">Total submissions</div>
-        <div class="stat-value" id="submittedCount">0</div>
-        <div class="stat-sub">All time</div>
-      </div>
-      <div class="stat-card accent-amber">
-        <div class="stat-label">Under review</div>
-        <div class="stat-value" id="underReviewCount">0</div>
-        <div class="stat-sub">Active assignments</div>
-      </div>
-      <div class="stat-card accent-green">
-        <div class="stat-label">Accepted</div>
-        <div class="stat-value" id="acceptedCount">0</div>
-        <div class="stat-sub">Ready for production</div>
-      </div>
-      <div class="stat-card accent-red">
-        <div class="stat-label">Rejected</div>
-        <div class="stat-value" id="rejectedCount">0</div>
-        <div class="stat-sub">Closed decisions</div>
-      </div>
-    </div>
+            <h1>
+                Editorial Dashboard
+            </h1>
 
-    <div class="table-section">
-      <div class="table-section-header">
-        <h2>Manuscripts</h2>
-        <div class="table-filter">
-          <button class="filter-btn active" onclick="filterTable('all', this)">All</button>
-          <button class="filter-btn" onclick="filterTable('Under Review', this)">Review</button>
-          <button class="filter-btn" onclick="filterTable('Accepted', this)">Accepted</button>
-          <button class="filter-btn" onclick="filterTable('Rejected', this)">Rejected</button>
+            <p>
+                <strong>
+                    Journal of Materials Intelligence and Computing
+                </strong>
+            </p>
+
         </div>
-      </div>
-      <table id="manuscriptTable">
-        <thead>
-          <tr>
-            <th>Article ID</th>
-            <th>Title</th>
-            <th>Status</th>
-            <th>Submitted</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-      <div class="empty-state" id="emptyState" style="display:none;">No manuscripts match this filter.</div>
+
+        <div>
+
+            <button onclick="openPasswordPage()">
+                Change Password
+            </button>
+
+            <button onclick="logout()">
+                Logout
+            </button>
+
+        </div>
+
     </div>
-  </div>
+
+    <!-- LOGIN SECTION -->
+
+    <div id="loginSection"
+         class="card">
+
+        <h2>
+            Editor Login
+        </h2>
+
+        <input
+        type="email"
+        id="email"
+        placeholder="Editor Email">
+
+        <input
+        type="password"
+        id="password"
+        placeholder="Password">
+
+        <button onclick="login()">
+            Login
+        </button>
+
+        <div id="loginMessage"></div>
+
+    </div>
+
+    <!-- DASHBOARD -->
+
+    <div id="dashboard"
+         style="display:none;">
+
+        <!-- STATISTICS -->
+
+        <div class="stats">
+
+            <div class="card">
+
+                <h3 id="submittedCount">
+                    0
+                </h3>
+
+                <p>
+                    Total Manuscripts
+                </p>
+
+            </div>
+
+            <div class="card">
+
+                <h3 id="underReviewCount">
+                    0
+                </h3>
+
+                <p>
+                    Under Review
+                </p>
+
+            </div>
+
+            <div class="card">
+
+                <h3 id="acceptedCount">
+                    0
+                </h3>
+
+                <p>
+                    Accepted
+                </p>
+
+            </div>
+
+            <div class="card">
+
+                <h3 id="rejectedCount">
+                    0
+                </h3>
+
+                <p>
+                    Rejected
+                </p>
+
+            </div>
+
+        </div>
+
+        <!-- QUICK ACTIONS -->
+
+        <div class="card">
+
+            <h2>
+                Editorial Management
+            </h2>
+
+            <p>
+
+                <a href="manuscripts.html">
+
+                    <button>
+                        Manage Manuscripts
+                    </button>
+
+                </a>
+
+            </p>
+
+        </div>
+
+        <!-- MANUSCRIPT TABLE -->
+
+        <div class="card">
+
+            <h2>
+                Recent Manuscripts
+            </h2>
+
+            <table id="manuscriptTable">
+
+                <thead>
+
+                    <tr>
+
+                        <th>
+                            Article ID
+                        </th>
+
+                        <th>
+                            Title
+                        </th>
+
+                        <th>
+                            Status
+                        </th>
+
+                        <th>
+                            Submission Date
+                        </th>
+
+                        <th>
+                            Action
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
 
 </div>
 
-<script src="../editor.js" defer></script>
-<script>
-  function login() {
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
-    if (!email || !password) return;
+<script src="editor.js"></script>
 
-    document.getElementById('loginSection').style.display = 'none';
-    document.getElementById('dashboard').style.display = 'block';
-    document.getElementById('navRight').style.display = 'flex';
-    document.getElementById('editorEmail').textContent = email;
-
-    const initials = email.substring(0, 2).toUpperCase();
-    document.getElementById('editorAvatar').textContent = initials;
-
-    const now = new Date().toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' });
-    document.getElementById('dashSubtitle').textContent = 'Last updated ' + now;
-  }
-
-  function logout() {
-    document.getElementById('loginSection').style.display = 'block';
-    document.getElementById('dashboard').style.display = 'none';
-    document.getElementById('navRight').style.display = 'none';
-    document.getElementById('email').value = '';
-    document.getElementById('password').value = '';
-  }
-
-  function getBadgeClass(status) {
-    const map = {
-      'Submitted':    'badge-submitted',
-      'Under Review': 'badge-review',
-      'Accepted':     'badge-accepted',
-      'Rejected':     'badge-rejected',
-      'Revision':     'badge-revision',
-    };
-    return map[status] || 'badge-submitted';
-  }
-
-  let allRows = [];
-
-  function renderTable(rows) {
-    const tbody = document.querySelector('#manuscriptTable tbody');
-    const empty = document.getElementById('emptyState');
-    tbody.innerHTML = '';
-    if (!rows.length) { empty.style.display = 'block'; return; }
-    empty.style.display = 'none';
-    rows.forEach(row => {
-      const tr = document.createElement('tr');
-      tr.dataset.status = row.status;
-      tr.innerHTML = `
-        <td class="td-id">${row.article_id || row.id || '—'}</td>
-        <td class="td-title">${row.title}<small>${row.authors || ''}</small></td>
-        <td><span class="badge ${getBadgeClass(row.status)}">${row.status}</span></td>
-        <td>${row.submission_date || row.created_at || '—'}</td>
-        <td><button class="btn-action" onclick="viewManuscript('${row.id}')">View</button></td>
-      `;
-      tbody.appendChild(tr);
-    });
-  }
-
-  function filterTable(status, btn) {
-    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    const filtered = status === 'all' ? allRows : allRows.filter(r => r.status === status);
-    renderTable(filtered);
-  }
-
-  function viewManuscript(id) {
-    if (typeof window.openManuscript === 'function') window.openManuscript(id);
-  }
-
-  window.setManuscripts = function(manuscripts) {
-    allRows = manuscripts;
-    renderTable(manuscripts);
-    document.getElementById('submittedCount').textContent  = manuscripts.length;
-    document.getElementById('underReviewCount').textContent = manuscripts.filter(m => m.status === 'Under Review').length;
-    document.getElementById('acceptedCount').textContent   = manuscripts.filter(m => m.status === 'Accepted').length;
-    document.getElementById('rejectedCount').textContent   = manuscripts.filter(m => m.status === 'Rejected').length;
-  };
-
-  document.getElementById('password').addEventListener('keydown', e => {
-    if (e.key === 'Enter') login();
-  });
-</script>
 </body>
+
 </html>
