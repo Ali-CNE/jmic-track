@@ -28,17 +28,16 @@ try {
 
 const response =
 await fetch(
-`${SUPABASE_URL}/rest/v1/editors?editor_email=eq.${encodeURIComponent(email)}&password=eq.${encodeURIComponent(password)}`,
+`${SUPABASE_URL}/rest/v1/editor_assignments?editor_email=eq.${encodeURIComponent(currentEditor.editor_email)}&active=eq.true`,
 {
-headers: {
-apikey: SUPABASE_KEY,
-Authorization:
-`Bearer ${SUPABASE_KEY}`
+headers:{
+apikey:SUPABASE_KEY,
+Authorization:`Bearer ${SUPABASE_KEY}`
 }
 }
 );
 
-const data =
+const assignments =
 await response.json();
 
 if (!Array.isArray(data) ||
@@ -102,36 +101,105 @@ loadDashboard();
 
 };
 
+
+
 async function loadDashboard() {
 
-try {
+    try {
 
-const response =
-await fetch(
-`${SUPABASE_URL}/rest/v1/manuscripts?select=*`,
-{
-headers: {
-apikey: SUPABASE_KEY,
-Authorization:
-`Bearer ${SUPABASE_KEY}`
+        let manuscripts = [];
+
+        if (
+            currentEditor.role === "Chief Editor"
+            ||
+            currentEditor.role === "Editor-in-Chief"
+        ) {
+
+            const response =
+            await fetch(
+                `${SUPABASE_URL}/rest/v1/manuscripts?select=*`,
+                {
+                    headers:{
+                        apikey:SUPABASE_KEY,
+                        Authorization:
+                        `Bearer ${SUPABASE_KEY}`
+                    }
+                }
+            );
+
+            manuscripts =
+            await response.json();
+
+        }
+        else {
+
+            const assignmentResponse =
+            await fetch(
+                `${SUPABASE_URL}/rest/v1/editor_assignments?editor_email=eq.${encodeURIComponent(currentEditor.editor_email)}&active=eq.true`,
+                {
+                    headers:{
+                        apikey:SUPABASE_KEY,
+                        Authorization:
+                        `Bearer ${SUPABASE_KEY}`
+                    }
+                }
+            );
+
+            const assignments =
+            await assignmentResponse.json();
+
+            if(assignments.length===0){
+
+                manuscripts = [];
+
+            }
+            else{
+
+                const articleIds =
+                assignments.map(
+                    a => a.article_id
+                );
+
+                const filter =
+                articleIds.join(",");
+
+                const manuscriptResponse =
+                await fetch(
+                    `${SUPABASE_URL}/rest/v1/manuscripts?article_id=in.(${filter})`,
+                    {
+                        headers:{
+                            apikey:SUPABASE_KEY,
+                            Authorization:
+                            `Bearer ${SUPABASE_KEY}`
+                        }
+                    }
+                );
+
+                manuscripts =
+                await manuscriptResponse.json();
+            }
+        }
+
+        updateStats(manuscripts);
+
+        renderTable(manuscripts);
+
+    }
+    catch(error){
+
+        console.error(error);
+
+        alert(
+        "Unable to load manuscripts."
+        );
+    }
 }
-}
-);
 
-const manuscripts =
-await response.json();
 
-updateStats(manuscripts);
 
-renderTable(manuscripts);
 
-}
-catch(error) {
 
-console.error(error);
 
-}
-}
 
 function updateStats(manuscripts) {
 
