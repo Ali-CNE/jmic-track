@@ -49,8 +49,9 @@ return;
 
 }
 
-currentEditor =
-data[0];
+currentEditor = data[0];
+
+console.log("Logged in editor:", currentEditor);
 
 sessionStorage.setItem(
 "editor",
@@ -65,7 +66,11 @@ document
 .getElementById("dashboard")
 .style.display = "block";
 
-loadDashboard();
+document
+.getElementById("dashboardHeader")
+.style.display = "flex";
+
+await loadDashboard();
 
 }
 catch(error) {
