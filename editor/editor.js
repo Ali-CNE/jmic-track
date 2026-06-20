@@ -8,78 +8,84 @@ let currentEditor = null;
 
 async function login() {
 
-const email =
-document.getElementById("email")
-.value.trim();
+    const email =
+    document.getElementById("email")
+    .value.trim();
 
-const password =
-document.getElementById("password")
-.value.trim();
+    const password =
+    document.getElementById("password")
+    .value.trim();
 
-if (!email || !password) {
+    if (!email || !password) {
 
-alert("Enter email and password.");
+        alert(
+        "Enter email and password."
+        );
 
-return;
+        return;
+    }
 
-}
+    try {
 
-try {
+        const response =
+        await fetch(
+            `${SUPABASE_URL}/rest/v1/editors?editor_email=eq.${encodeURIComponent(email)}&password=eq.${encodeURIComponent(password)}`,
+            {
+                headers:{
+                    apikey:SUPABASE_KEY,
+                    Authorization:
+                    `Bearer ${SUPABASE_KEY}`
+                }
+            }
+        );
 
-const response =
-await fetch(
-`${SUPABASE_URL}/rest/v1/editor_assignments?editor_email=eq.${encodeURIComponent(currentEditor.editor_email)}&active=eq.true`,
-{
-headers:{
-apikey:SUPABASE_KEY,
-Authorization:`Bearer ${SUPABASE_KEY}`
-}
-}
-);
+        const data =
+        await response.json();
 
-const assignments =
-await response.json();
+        if (
+            !Array.isArray(data)
+            ||
+            data.length === 0
+        ) {
 
-if (!Array.isArray(data) ||
-data.length === 0) {
+            alert(
+            "Invalid login."
+            );
 
-alert("Invalid login.");
+            return;
+        }
 
-return;
+        currentEditor =
+        data[0];
 
-}
+        sessionStorage.setItem(
+            "editor",
+            JSON.stringify(currentEditor)
+        );
 
-currentEditor = data[0];
+        document
+        .getElementById("loginSection")
+        .style.display = "none";
 
-console.log("Logged in editor:", currentEditor);
+        document
+        .getElementById("dashboard")
+        .style.display = "block";
 
-sessionStorage.setItem(
-"editor",
-JSON.stringify(currentEditor)
-);
+        document
+        .getElementById("dashboardHeader")
+        .style.display = "flex";
 
-document
-.getElementById("loginSection")
-.style.display = "none";
+        await loadDashboard();
 
-document
-.getElementById("dashboard")
-.style.display = "block";
+    }
+    catch(error){
 
-document
-.getElementById("dashboardHeader")
-.style.display = "flex";
+        console.error(error);
 
-await loadDashboard();
-
-}
-catch(error) {
-
-console.error(error);
-
-alert("Login failed.");
-
-}
+        alert(
+        "Login failed."
+        );
+    }
 }
 
 window.onload = () => {
@@ -89,19 +95,22 @@ sessionStorage.getItem("editor");
 
 if (stored) {
 
-currentEditor =
-JSON.parse(stored);
+    currentEditor =
+    JSON.parse(stored);
 
-document
-.getElementById("loginSection")
-.style.display = "none";
+    document
+    .getElementById("loginSection")
+    .style.display = "none";
 
-document
-.getElementById("dashboardHeader")
-.style.display = "flex";
+    document
+    .getElementById("dashboard")
+    .style.display = "block";
 
-loadDashboard();
+    document
+    .getElementById("dashboardHeader")
+    .style.display = "flex";
 
+    loadDashboard();
 }
 
 };
