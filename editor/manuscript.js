@@ -104,6 +104,125 @@ async function loadManuscript() {
     `;
 }
 
+/*==========================
+Assign Editor
+==========================*/
+
+async function loadEditors() {
+
+    const response =
+    await fetch(
+    `${SUPABASE_URL}/rest/v1/editors?select=*`,
+    {
+        headers:{
+            apikey:SUPABASE_KEY,
+            Authorization:
+            `Bearer ${SUPABASE_KEY}`
+        }
+    });
+
+    const editors =
+    await response.json();
+
+    const select =
+    document.getElementById(
+    "editorSelect"
+    );
+
+    editors.forEach(editor=>{
+
+        select.innerHTML += `
+        <option value="${editor.editor_email}">
+        ${editor.editor_name}
+        (${editor.role})
+        </option>
+        `;
+    });
+}
+
+
+
+async function assignEditor() {
+
+    const editorEmail =
+    document.getElementById(
+    "editorSelect"
+    ).value;
+
+    if(!editorEmail){
+
+        alert(
+        "Select an editor."
+        );
+
+        return;
+    }
+
+    const response =
+    await fetch(
+    `${SUPABASE_URL}/rest/v1/editor_assignments`,
+    {
+        method:"POST",
+        headers:{
+            apikey:SUPABASE_KEY,
+            Authorization:
+            `Bearer ${SUPABASE_KEY}`,
+            "Content-Type":
+            "application/json"
+        },
+        body:JSON.stringify({
+
+            article_id:
+            manuscript.article_id,
+
+            editor_email:
+            editorEmail,
+
+            active:true
+
+        })
+    });
+
+    if(response.ok){
+
+        alert(
+        "Editor assigned successfully."
+        );
+
+        loadAssignedEditor();
+    }
+}
+
+
+async function loadAssignedEditor() {
+
+    const response =
+    await fetch(
+    `${SUPABASE_URL}/rest/v1/editor_assignments?article_id=eq.${manuscript.article_id}&active=eq.true`,
+    {
+        headers:{
+            apikey:SUPABASE_KEY,
+            Authorization:
+            `Bearer ${SUPABASE_KEY}`
+        }
+    });
+
+    const data =
+    await response.json();
+
+    if(data.length>0){
+
+        document
+        .getElementById(
+        "currentEditor"
+        )
+        .innerHTML =
+        `<strong>Current Editor:</strong>
+        ${data[0].editor_email}`;
+    }
+}
+
+
 /* ==========================
    REVIEWERS
 ========================== */
@@ -494,26 +613,22 @@ function generateReviewerEmail(token) {
 
     const emailText = `Dear Reviewer,
 
-We would like to invite you to review the following manuscript.
+I hope this message finds you well.
+I am pleased to invite you to serve as a peer reviewer for a manuscript submitted to our journal. Given your expertise in the relevant field, we believe your insights would be highly valuable in evaluating this work.
+Please find the manuscript details below:
 
-Article ID:
-${manuscript.article_id}
+Article ID: ${manuscript.article_id}
 
-Title:
-${manuscript.title}
+Title: ${manuscript.title}
 
-Abstract:
-${manuscript.abstract}
+Abstract: ${manuscript.abstract}
 
-Review Link:
-${reviewLink}
+We would be grateful if you could kindly confirm your willingness to review this manuscript. If you accept this invitation, you will be provided with secure access to the full manuscript and the review submission form through your personalized reviewer link.
+Review Link: ${reviewLink}
 
-Please use the above link to accept or decline the invitation.
+Please use the above link to accept or decline the invitation. We sincerely appreciate your time and consideration. Your contribution would play an important role in maintaining the quality and integrity of our peer-review process.
 
-Kind regards,
-
-Editorial Office
-Journal of Materials Intelligence and Computing`;
+Kind regards,`;
 
     navigator.clipboard.writeText(
         emailText
