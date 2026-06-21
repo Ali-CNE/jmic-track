@@ -58,6 +58,8 @@ async function login() {
         currentEditor =
         data[0];
 
+console.log("Current Editor:", currentEditor);
+
         sessionStorage.setItem(
             "editor",
             JSON.stringify(currentEditor)
@@ -161,6 +163,9 @@ async function loadDashboard() {
 
             const assignments =
             await assignmentResponse.json();
+
+console.log("Editor Email:", currentEditor.editor_email);
+console.log("Assignments:", assignments);
 
             if(assignments.length===0){
 
