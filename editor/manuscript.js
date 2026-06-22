@@ -162,7 +162,9 @@ async function assignEditor() {
         );
 
         return;
-    }
+    loadEditors();
+loadAssignedEditor();
+	}
 
     const response =
     await fetch(
@@ -639,6 +641,8 @@ Kind regards,`;
     navigator.clipboard.writeText(
         emailText
     );
+
+	
 
     alert(
         "Invitation email copied to clipboard."
