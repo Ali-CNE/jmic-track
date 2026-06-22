@@ -23,6 +23,37 @@ async function loadPage() {
     await loadReviews();
 }
 
+const storedEditor =
+sessionStorage.getItem("editor");
+
+if(storedEditor){
+
+    currentEditor =
+    JSON.parse(storedEditor);
+
+}
+
+if(
+    currentEditor &&
+    currentEditor.role !== "Editor-in-Chief"
+){
+
+    document.getElementById(
+    "assignEditorTitle"
+    ).style.display = "none";
+
+    document.getElementById(
+    "editorSelect"
+    ).style.display = "none";
+
+    document.getElementById(
+    "assignEditorButton"
+    ).style.display = "none";
+}
+
+loadEditors();
+loadAssignedEditor();
+
 /* ==========================
    MANUSCRIPT
 ========================== */
@@ -126,10 +157,6 @@ async function loadEditors() {
     const editors =
     await response.json();
 
-    alert(
-    JSON.stringify(editors)
-    );
-
     const select =
     document.getElementById(
     "editorSelect"
@@ -230,23 +257,6 @@ async function loadAssignedEditor() {
     }
 }
 
-if (
-    currentEditor &&
-    currentEditor.role !== "Editor-in-Chief"
-) {
-
-    document.getElementById(
-        "assignEditorTitle"
-    ).style.display = "none";
-
-    document.getElementById(
-        "editorSelect"
-    ).style.display = "none";
-
-    document.getElementById(
-        "assignEditorButton"
-    ).style.display = "none";
-}
 
 
 /* ==========================
