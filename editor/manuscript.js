@@ -179,16 +179,6 @@ async function loadEditors() {
 
 async function assignEditor() {
 
-   if(
-        !currentEditor ||
-        currentEditor.role !== "Editor-in-Chief"
-    ){
-        alert(
-        "Permission denied."
-        );
-        return;
-    }
-
     const editorEmail =
     document.getElementById(
     "editorSelect"
@@ -240,10 +230,6 @@ async function assignEditor() {
 
 
 async function loadAssignedEditor() {
-
-if(!manuscript){
-        return;
-    }
 
     const response =
     await fetch(
