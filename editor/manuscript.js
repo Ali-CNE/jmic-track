@@ -644,3 +644,4 @@ Kind regards,`;
         "Invitation email copied to clipboard."
     );
 }
+loadEditors();
