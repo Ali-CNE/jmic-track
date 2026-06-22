@@ -124,10 +124,17 @@ async function loadEditors() {
     const editors =
     await response.json();
 
+    alert(
+    JSON.stringify(editors)
+    );
+
     const select =
     document.getElementById(
     "editorSelect"
     );
+
+    select.innerHTML =
+    '<option value="">Select Editor</option>';
 
     editors.forEach(editor=>{
 
@@ -139,7 +146,6 @@ async function loadEditors() {
         `;
     });
 }
-
 
 
 async function assignEditor() {
