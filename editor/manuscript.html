@@ -27,7 +27,9 @@ Loading manuscript...
 
 <div class="card">
 
-<h2>Assign Editor</h2>
+<h2 id="assignEditorTitle">
+Assign Editor
+</h2>
 
 <select id="editorSelect">
 <option value="">
@@ -35,11 +37,14 @@ Select Editor
 </option>
 </select>
 
-<button onclick="assignEditor()">
+<button 
+id="assignEditorButton"
+onclick="assignEditor()">
 Assign Editor
 </button>
 
 <div id="currentEditor"></div>
+
 
 <h2>Assign Reviewer</h2>
 

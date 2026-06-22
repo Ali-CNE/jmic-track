@@ -102,6 +102,8 @@ async function loadManuscript() {
         ${pdfButton}
 
     `;
+loadEditors();
+loadAssignedEditor();
 }
 
 /*==========================
@@ -112,7 +114,7 @@ async function loadEditors() {
 
     const response =
     await fetch(
-    `${SUPABASE_URL}/rest/v1/editors?select=*`,
+    `${SUPABASE_URL}/rest/v1/editors?select=editor_name,editor_email,role`,
     {
         headers:{
             apikey:SUPABASE_KEY,
@@ -162,9 +164,7 @@ async function assignEditor() {
         );
 
         return;
-    loadEditors();
-loadAssignedEditor();
-	}
+    }
 
     const response =
     await fetch(
@@ -228,6 +228,24 @@ async function loadAssignedEditor() {
         `<strong>Current Editor:</strong>
         ${data[0].editor_email}`;
     }
+}
+
+if (
+    currentEditor &&
+    currentEditor.role !== "Editor-in-Chief"
+) {
+
+    document.getElementById(
+        "assignEditorTitle"
+    ).style.display = "none";
+
+    document.getElementById(
+        "editorSelect"
+    ).style.display = "none";
+
+    document.getElementById(
+        "assignEditorButton"
+    ).style.display = "none";
 }
 
 
@@ -641,8 +659,6 @@ Kind regards,`;
     navigator.clipboard.writeText(
         emailText
     );
-
-	
 
     alert(
         "Invitation email copied to clipboard."
