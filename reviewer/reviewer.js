@@ -199,7 +199,7 @@ async function declineInvitation() {
     try {
 
         await fetch(
-            `${SUPABASE_URL}/rest/v1/review_assignments?review_token=eq.${encodeURIComponent(token)}`,
+            `${SUPABASE_URL}/rest/v1/review_assignments?secure_token=eq.${encodeURIComponent(token)}`,
             {
                 method: "PATCH",
                 headers: {
@@ -414,7 +414,7 @@ async function submitReview() {
         }
 
         await fetch(
-            `${SUPABASE_URL}/rest/v1/review_assignments?review_token=eq.${encodeURIComponent(token)}`,
+            `${SUPABASE_URL}/rest/v1/review_assignments?secure_token=eq.${encodeURIComponent(token)}`,
             {
                 method: "PATCH",
                 headers: {
