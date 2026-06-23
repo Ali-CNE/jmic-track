@@ -290,7 +290,7 @@ async function loadReviewers() {
     reviewers.forEach(r => {
 
         const reviewLink =
-        `${window.location.origin}/reviewer/?token=${r.review_token}`;
+        `${window.location.origin}/reviewer/?token=${r.secure_token}`;
 
         const row =
         document.createElement("tr");
@@ -317,7 +317,7 @@ async function loadReviewers() {
         style="width:100%;">
 
 <button
-onclick="copyReviewerLink('${r.review_token}')">
+onclick="copyReviewerLink('${r.secure_token}')">
 Copy
 </button>
 
@@ -326,7 +326,7 @@ Copy
 <td>
 
 <button
-onclick="generateReviewerEmail('${r.review_token}')">
+onclick="generateReviewerEmail('${r.secure_token}')">
 Generate Email
 </button>
 
@@ -364,10 +364,8 @@ async function assignReviewer() {
         return;
     }
 
-    const token =
-    Math.random()
-    .toString(36)
-    .substring(2,10);
+    const secureToken =
+crypto.randomUUID();
 
     await fetch(
         `${SUPABASE_URL}/rest/v1/review_assignments`,
@@ -396,8 +394,8 @@ async function assignReviewer() {
                 reviewer_email:
                 email,
 
-                review_token:
-                token,
+                secure_token:
+                secureToken,
 
                 invitation_status:
                 "Pending",
@@ -612,7 +610,7 @@ function copyReviewerLink(token) {
 
     const input =
     document.getElementById(
-        `link_${token}`
+        `link_${secure_token}`
     );
 
     input.select();
@@ -630,7 +628,7 @@ function copyReviewerLink(token) {
 
     const input =
     document.getElementById(
-        `link_${token}`
+        `link_${secure_token}`
     );
 
     navigator.clipboard.writeText(
@@ -642,10 +640,10 @@ function copyReviewerLink(token) {
     );
 }
 
-function generateReviewerEmail(token) {
+function generateReviewerEmail(secure_token) {
 
     const reviewLink =
-    `${window.location.origin}/reviewer/?token=${token}`;
+    `${window.location.origin}/reviewer/?token=${secure_token}`;
 
     const emailText = `Dear Reviewer,
 
