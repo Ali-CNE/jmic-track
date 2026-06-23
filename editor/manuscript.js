@@ -311,6 +311,7 @@ async function loadReviewers() {
 
         <td>
         <input
+id="link_${r.secure_token}"
         type="text"
         value="${reviewLink}"
         readonly
@@ -672,3 +673,4 @@ Kind regards,`;
         "Invitation email copied to clipboard."
     );
 }
+
