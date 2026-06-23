@@ -611,10 +611,17 @@ function copyReviewerLink(token) {
 
     const input =
     document.getElementById(
-        `link_${secure_token}`
+        `link_${token}`
     );
 
-    input.select();
+    if(!input){
+
+        alert(
+        "Reviewer link not found."
+        );
+
+        return;
+    }
 
     navigator.clipboard.writeText(
         input.value
@@ -625,26 +632,10 @@ function copyReviewerLink(token) {
     );
 }
 
-function copyReviewerLink(token) {
-
-    const input =
-    document.getElementById(
-        `link_${secure_token}`
-    );
-
-    navigator.clipboard.writeText(
-        input.value
-    );
-
-    alert(
-        "Reviewer link copied."
-    );
-}
-
-function generateReviewerEmail(secure_token) {
+function generateReviewerEmail(token) {
 
     const reviewLink =
-    `${window.location.origin}/reviewer/?token=${secure_token}`;
+    `${window.location.origin}/reviewer/?token=${token}`;
 
     const emailText = `Dear Reviewer,
 
@@ -662,6 +653,8 @@ We would be grateful if you could kindly confirm your willingness to review this
 Review Link: ${reviewLink}
 
 Please use the above link to accept or decline the invitation. We sincerely appreciate your time and consideration. Your contribution would play an important role in maintaining the quality and integrity of our peer-review process.
+
+Thank you for considering this invitation.
 
 Kind regards,`;
 
