@@ -31,7 +31,7 @@ async function loadAssignment() {
 
         const response =
         await fetch(
-            `${SUPABASE_URL}/rest/v1/review_assignments?review_token=eq.${encodeURIComponent(token)}`,
+            `${SUPABASE_URL}/rest/v1/review_assignments?secure_token=eq.${encodeURIComponent(token)}`,
             {
                 headers: {
                     apikey: SUPABASE_KEY,
@@ -159,7 +159,7 @@ async function acceptInvitation() {
     try {
 
         await fetch(
-            `${SUPABASE_URL}/rest/v1/review_assignments?review_token=eq.${encodeURIComponent(token)}`,
+            `${SUPABASE_URL}/rest/v1/review_assignments?secure_token=eq.${encodeURIComponent(token)}`,
             {
                 method: "PATCH",
                 headers: {
