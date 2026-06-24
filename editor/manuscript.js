@@ -713,9 +713,61 @@ Kind regards,`;
     );
 }
 
-function loadReviewerList() {
+async function loadReviewerList() {
 
-    console.log(
-    "Reviewer list function loaded."
-    );
+    try {
+
+        const response =
+        await fetch(
+        `${SUPABASE_URL}/rest/v1/reviewers?select=id,name,email,affiliation,expertise`,
+        {
+            headers:{
+                apikey:SUPABASE_KEY,
+                Authorization:
+                `Bearer ${SUPABASE_KEY}`
+            }
+        });
+
+        const reviewers =
+        await response.json();
+
+        console.log(
+        "Reviewers:",
+        reviewers
+        );
+
+        const select =
+        document.getElementById(
+        "reviewerSelect"
+        );
+
+        if(!select){
+
+            console.error(
+            "reviewerSelect not found"
+            );
+
+            return;
+        }
+
+        select.innerHTML =
+        '<option value="">Select Reviewer</option>';
+
+        reviewers.forEach(reviewer => {
+
+            select.innerHTML += `
+            <option value="${reviewer.email}">
+            ${reviewer.name}
+            </option>
+            `;
+        });
+
+    }
+    catch(error){
+
+        console.error(
+        "Reviewer load error:",
+        error
+        );
+    }
 }
