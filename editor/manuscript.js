@@ -394,36 +394,38 @@ async function assignReviewer() {
                     "return=representation"
                 },
 
-                body:JSON.stringify({
+body:JSON.stringify({
 
-                    article_id:
-                    manuscript.article_id,
+    article_id:
+    manuscript.article_id,
 
-                    manuscript_title:
-                    manuscript.title,
+    manuscript_title:
+    manuscript.title,
 
-                    abstract:
-                    manuscript.abstract,
+    abstract:
+    manuscript.abstract,
 
-                    reviewer_email:
-                    email,
+    reviewer_email:
+    email,
 
-                    secure_token:
-                    secureToken,
+    review_token:
+    secureToken,
 
-                    invitation_status:
-                    "Pending",
+    secure_token:
+    secureToken,
 
-                    review_submitted:
-                    false,
+    invitation_status:
+    "Pending",
 
-                    review_deadline:
-                    deadline,
+    review_submitted:
+    false,
 
-                    pdf_path:
-                    manuscript.pdf_path
+    review_deadline:
+    deadline,
 
-                })
+    pdf_path:
+    manuscript.pdf_path
+})
             }
         );
 
