@@ -712,3 +712,10 @@ Kind regards,`;
         "Invitation email copied to clipboard."
     );
 }
+
+function loadReviewerList() {
+
+    console.log(
+    "Reviewer list function loaded."
+    );
+}
