@@ -48,10 +48,26 @@ Assign Editor
 
 <h2>Assign Reviewer</h2>
 
+<select id="reviewerSelect">
+    <option value="">
+        Select Reviewer
+    </option>
+</select>
+
+<div id="reviewerInfo"
+style="
+margin:10px 0;
+padding:10px;
+border:1px solid #ddd;
+border-radius:6px;
+background:#f9f9f9;">
+</div>
+
 <input
 type="email"
 id="reviewerEmail"
-placeholder="Reviewer Email">
+placeholder="Reviewer Email"
+readonly>
 
 <input
 type="date"

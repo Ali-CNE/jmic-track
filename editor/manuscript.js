@@ -21,6 +21,8 @@ async function loadPage() {
     await loadReviewers();
 
     await loadReviews();
+
+await loadReviewerList();
 }
 
 const storedEditor =
@@ -345,6 +347,9 @@ Generate Email
     });
 
 }
+
+
+
 
 /* ==========================
    ASSIGN REVIEWER
@@ -707,4 +712,3 @@ Kind regards,`;
         "Invitation email copied to clipboard."
     );
 }
-
