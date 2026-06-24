@@ -51,8 +51,6 @@ if(
     ).style.display = "none";
 }
 
-loadEditors();
-loadAssignedEditor();
 
 /* ==========================
    MANUSCRIPT
