@@ -7,8 +7,8 @@ const SUPABASE_KEY =
 const params =
 new URLSearchParams(window.location.search);
 
-const secureToken =
-crypto.randomUUID();
+const token =
+params.get("token");
 
 let assignment = null;
 
