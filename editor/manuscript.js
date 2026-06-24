@@ -86,6 +86,14 @@ async function loadManuscript() {
     }
 
     manuscript = data[0];
+await loadAssignedEditor();
+
+if (
+    currentEditor &&
+    currentEditor.role === "Editor-in-Chief"
+) {
+    await loadEditors();
+}
 
     let pdfButton = "";
 
@@ -365,61 +373,94 @@ async function assignReviewer() {
         return;
     }
 
-    const secureToken =
-crypto.randomUUID();
+    try {
 
-    await fetch(
-        `${SUPABASE_URL}/rest/v1/review_assignments`,
-        {
-            method:"POST",
+        const secureToken =
+        crypto.randomUUID();
 
-            headers:{
-                apikey:SUPABASE_KEY,
-                Authorization:
-                `Bearer ${SUPABASE_KEY}`,
-                "Content-Type":
-                "application/json"
-            },
+        const response =
+        await fetch(
+            `${SUPABASE_URL}/rest/v1/review_assignments`,
+            {
+                method:"POST",
 
-            body:JSON.stringify({
+                headers:{
+                    apikey:SUPABASE_KEY,
+                    Authorization:
+                    `Bearer ${SUPABASE_KEY}`,
+                    "Content-Type":
+                    "application/json",
+                    "Prefer":
+                    "return=representation"
+                },
 
-                article_id:
-                manuscript.article_id,
+                body:JSON.stringify({
 
-                manuscript_title:
-                manuscript.title,
+                    article_id:
+                    manuscript.article_id,
 
-		abstract:
-		manuscript.abstract,
+                    manuscript_title:
+                    manuscript.title,
 
-                reviewer_email:
-                email,
+                    abstract:
+                    manuscript.abstract,
 
-                secure_token:
-                secureToken,
+                    reviewer_email:
+                    email,
 
-                invitation_status:
-                "Pending",
+                    secure_token:
+                    secureToken,
 
-                review_submitted:
-                false,
+                    invitation_status:
+                    "Pending",
 
-                review_deadline:
-                deadline,
+                    review_submitted:
+                    false,
 
-                pdf_path:
-                manuscript.pdf_path
+                    review_deadline:
+                    deadline,
 
-            })
+                    pdf_path:
+                    manuscript.pdf_path
+
+                })
+            }
+        );
+
+        const result =
+        await response.text();
+
+        console.log(
+            "Review Assignment Response:",
+            result
+        );
+
+        if(!response.ok){
+
+            alert(
+            "Reviewer assignment failed."
+            );
+
+            return;
         }
-    );
 
-    alert(
-        "Reviewer assigned."
-    );
+        alert(
+        "Reviewer assigned successfully."
+        );
 
-    loadReviewers();
+        loadReviewers();
+
+    }
+    catch(error){
+
+        console.error(error);
+
+        alert(
+        "Error assigning reviewer."
+        );
+    }
 }
+
 
 /* ==========================
    REVIEWS
