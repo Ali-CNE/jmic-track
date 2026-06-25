@@ -775,3 +775,60 @@ async function loadReviewerList() {
         );
     }
 }
+
+
+
+
+    </div>
+    `;
+}
+
+function selectReviewer() {
+
+    const email =
+    document.getElementById(
+    "reviewerSelect"
+    ).value;
+
+    document.getElementById(
+    "reviewerEmail"
+    ).value = email;
+
+    const reviewer =
+    reviewerList.find(
+        r => r.email === email
+    );
+
+    if(!reviewer){
+
+        document.getElementById(
+        "reviewerInfo"
+        ).innerHTML = "";
+
+        return;
+    }
+
+    document.getElementById(
+    "reviewerInfo"
+    ).innerHTML = `
+
+    <div class="card">
+
+        <p>
+        <strong>Name:</strong>
+        ${reviewer.name}
+        </p>
+
+        <p>
+        <strong>Affiliation:</strong>
+        ${reviewer.affiliation || "-"}
+        </p>
+
+        <p>
+        <strong>Expertise:</strong>
+        ${reviewer.expertise || "-"}
+        </p>
+
+    </div>
+    `;
+}
