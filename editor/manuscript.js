@@ -756,9 +756,8 @@ async function loadReviewerList() {
         reviewers.forEach(reviewer => {
 
             select.innerHTML += `
-            <option
-            <value="${reviewer.email}">
-            data-email="${reviewer.email}">
+<option value="${reviewer.email}">
+            ${reviewer.name}>
 ${reviewer.name}
             </option>
             `;
@@ -776,13 +775,11 @@ ${reviewer.name}
 
 function selectReviewer() {
 
-    const select =
+    const email =
     document.getElementById(
     "reviewerSelect"
-    );
+    ).value;
 
-    const email =
-    select.value;
 
     document.getElementById(
     "reviewerEmail"
