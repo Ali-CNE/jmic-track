@@ -28,16 +28,25 @@ async function login() {
     try {
 
         const response =
-        await fetch(
-            `${SUPABASE_URL}/rest/v1/editors?editor_email=eq.${encodeURIComponent(email)}&password=eq.${encodeURIComponent(password)}`,
-            {
-                headers:{
-                    apikey:SUPABASE_KEY,
-                    Authorization:
-                    `Bearer ${SUPABASE_KEY}`
-                }
-            }
-        );
+await fetch(
+`${SUPABASE_URL}/rest/v1/rpc/verify_editor_login`,
+{
+    method:"POST",
+    headers:{
+        apikey:SUPABASE_KEY,
+        Authorization:
+        `Bearer ${SUPABASE_KEY}`,
+        "Content-Type":
+        "application/json"
+    },
+    body:JSON.stringify({
+
+        p_email: email,
+
+        p_password: password
+
+    })
+});
 
         const data =
         await response.json();
