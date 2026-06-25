@@ -776,7 +776,7 @@ async function loadReviewerList() {
     }
 }
 
-function selectReviewer() {
+window.selectReviewer = function() {
 
     const email =
     document.getElementById(
