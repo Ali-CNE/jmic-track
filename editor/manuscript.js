@@ -764,7 +764,7 @@ async function loadReviewerList() {
     ?
     reviewer.expertise
         .split(",")
-        .slice(0,2)
+        .slice(0,3)
         .join(", ")
     :
     "";
