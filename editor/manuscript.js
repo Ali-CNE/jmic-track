@@ -776,13 +776,6 @@ async function loadReviewerList() {
     }
 }
 
-
-
-
-    </div>
-    `;
-}
-
 function selectReviewer() {
 
     const email =
