@@ -759,12 +759,22 @@ async function loadReviewerList() {
 
         reviewers.forEach(reviewer => {
 
-            select.innerHTML += `
-            <option value="${reviewer.email}">
-                ${reviewer.name} - ${reviewer.expertise_short}
-            </option>
-            `;
-        });
+    const expertiseText =
+    reviewer.expertise
+    ?
+    reviewer.expertise
+        .split(",")
+        .slice(0,2)
+        .join(", ")
+    :
+    "";
+
+    select.innerHTML += `
+    <option value="${reviewer.email}">
+        ${reviewer.name} — ${expertiseText}
+    </option>
+    `;
+});
 
     }
     catch(error){
