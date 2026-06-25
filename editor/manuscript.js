@@ -761,7 +761,7 @@ async function loadReviewerList() {
 
             select.innerHTML += `
             <option value="${reviewer.email}">
-                ${reviewer.name} - ${reviewer.expertise_short || ""}
+                ${reviewer.name} - ${reviewer.expertise_short}
             </option>
             `;
         });
