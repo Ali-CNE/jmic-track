@@ -756,6 +756,7 @@ async function loadReviewerList() {
         reviewers.forEach(reviewer => {
 
             select.innerHTML += `
+            <option
             <value="${reviewer.email}">
             data-email="${reviewer.email}">
 ${reviewer.name}
