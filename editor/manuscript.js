@@ -11,6 +11,7 @@ const articleId =
 params.get("id");
 
 let manuscript = null;
+let reviewerList = [];
 
 window.onload = loadPage;
 
@@ -713,9 +714,14 @@ Kind regards,`;
     );
 }
 
+
 async function loadReviewerList() {
 
     try {
+
+const reviewers = 
+await response.json();
+reviewerList = reviewers;
 
         const response =
         await fetch(
@@ -753,12 +759,11 @@ async function loadReviewerList() {
         select.innerHTML =
         '<option value="">Select Reviewer</option>';
 
-        reviewers.forEach(reviewer => {
+reviewers.forEach(reviewer => {
 
             select.innerHTML += `
 <option value="${reviewer.email}">
-            ${reviewer.name}>
-${reviewer.name}
+            ${reviewer.name}
             </option>
             `;
         });
@@ -780,8 +785,38 @@ function selectReviewer() {
     "reviewerSelect"
     ).value;
 
-
     document.getElementById(
     "reviewerEmail"
     ).value = email;
+
+    const reviewer =
+    reviewerList.find(
+        r => r.email === email
+    );
+
+    if(!reviewer) return;
+
+    document.getElementById(
+    "reviewerInfo"
+    ).innerHTML = `
+
+    <div class="card">
+
+        <p>
+        <strong>Name:</strong>
+        ${reviewer.name}
+        </p>
+
+        <p>
+        <strong>Affiliation:</strong>
+        ${reviewer.affiliation || "-"}
+        </p>
+
+        <p>
+        <strong>Expertise:</strong>
+        ${reviewer.expertise || "-"}
+        </p>
+
+    </div>
+    `;
 }
