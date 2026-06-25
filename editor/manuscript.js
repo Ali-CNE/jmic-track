@@ -719,10 +719,6 @@ async function loadReviewerList() {
 
     try {
 
-const reviewers = 
-await response.json();
-reviewerList = reviewers;
-
         const response =
         await fetch(
         `${SUPABASE_URL}/rest/v1/reviewers?select=id,name,email,affiliation,expertise`,
@@ -736,6 +732,8 @@ reviewerList = reviewers;
 
         const reviewers =
         await response.json();
+
+        reviewerList = reviewers;
 
         console.log(
         "Reviewers:",
@@ -759,11 +757,11 @@ reviewerList = reviewers;
         select.innerHTML =
         '<option value="">Select Reviewer</option>';
 
-reviewers.forEach(reviewer => {
+        reviewers.forEach(reviewer => {
 
             select.innerHTML += `
-<option value="${reviewer.email}">
-            ${reviewer.name}
+            <option value="${reviewer.email}">
+                ${reviewer.name}
             </option>
             `;
         });
@@ -776,47 +774,4 @@ reviewers.forEach(reviewer => {
         error
         );
     }
-}
-
-function selectReviewer() {
-
-    const email =
-    document.getElementById(
-    "reviewerSelect"
-    ).value;
-
-    document.getElementById(
-    "reviewerEmail"
-    ).value = email;
-
-    const reviewer =
-    reviewerList.find(
-        r => r.email === email
-    );
-
-    if(!reviewer) return;
-
-    document.getElementById(
-    "reviewerInfo"
-    ).innerHTML = `
-
-    <div class="card">
-
-        <p>
-        <strong>Name:</strong>
-        ${reviewer.name}
-        </p>
-
-        <p>
-        <strong>Affiliation:</strong>
-        ${reviewer.affiliation || "-"}
-        </p>
-
-        <p>
-        <strong>Expertise:</strong>
-        ${reviewer.expertise || "-"}
-        </p>
-
-    </div>
-    `;
 }
