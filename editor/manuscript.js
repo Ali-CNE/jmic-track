@@ -359,8 +359,8 @@ async function assignReviewer() {
 
     const email =
     document.getElementById(
-        "reviewerEmail"
-    ).value.trim();
+        "reviewerSelect"
+    ).value;
 
     const deadline =
     document.getElementById(
@@ -756,8 +756,9 @@ async function loadReviewerList() {
         reviewers.forEach(reviewer => {
 
             select.innerHTML += `
-            <option value="${reviewer.email}">
-            ${reviewer.name}
+            <value="${reviewer.email}">
+            data-email="${reviewer.email}">
+${reviewer.name}
             </option>
             `;
         });
@@ -770,4 +771,19 @@ async function loadReviewerList() {
         error
         );
     }
+}
+
+function selectReviewer() {
+
+    const select =
+    document.getElementById(
+    "reviewerSelect"
+    );
+
+    const email =
+    select.value;
+
+    document.getElementById(
+    "reviewerEmail"
+    ).value = email;
 }
