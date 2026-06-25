@@ -51,20 +51,27 @@ Assign Editor
 <select 
 id="reviewerSelect"
 onchange="selectReviewer()">
-
-<div id="reviewerInfo"></div>
-    
+ 
 <option value="">
         Select Reviewer
     </option>
 </select>
+
+<div
+id="reviewerInfo"
+class="card"
+style="
+margin-top:10px;
+padding:10px;
+display:none;">
+</div>
 
 <input
 type="email"
 id="reviewerEmail"
 placeholder="Reviewer Email"
 readonly>
-    
+
 <input
 type="date"
 id="reviewDeadline">

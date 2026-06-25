@@ -776,7 +776,14 @@ async function loadReviewerList() {
     }
 }
 
-window.selectReviewer = function() {
+
+
+
+    </div>
+    `;
+}
+
+function selectReviewer() {
 
     const email =
     document.getElementById(
@@ -792,36 +799,43 @@ window.selectReviewer = function() {
         r => r.email === email
     );
 
+    const infoDiv =
+    document.getElementById(
+    "reviewerInfo"
+    );
+
     if(!reviewer){
 
-        document.getElementById(
-        "reviewerInfo"
-        ).innerHTML = "";
+        infoDiv.style.display =
+        "none";
 
         return;
     }
 
-    document.getElementById(
-    "reviewerInfo"
-    ).innerHTML = `
+    infoDiv.style.display =
+    "block";
 
-    <div class="card">
+    infoDiv.innerHTML = `
 
-        <p>
-        <strong>Name:</strong>
-        ${reviewer.name}
-        </p>
+    <strong>
+    ${reviewer.name}
+    </strong>
 
-        <p>
-        <strong>Affiliation:</strong>
-        ${reviewer.affiliation || "-"}
-        </p>
+    <br><br>
 
-        <p>
-        <strong>Expertise:</strong>
-        ${reviewer.expertise || "-"}
-        </p>
+    <strong>
+    Affiliation:
+    </strong>
 
-    </div>
+    ${reviewer.affiliation || "-"}
+
+    <br><br>
+
+    <strong>
+    Expertise:
+    </strong>
+
+    ${reviewer.expertise || "-"}
+
     `;
 }
