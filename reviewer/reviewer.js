@@ -155,7 +155,7 @@ await loadSignedPdfUrl();
         return;
     }
 
-    renderReviewForm();
+   await renderReviewForm();
 }
 
 async function acceptInvitation() {
