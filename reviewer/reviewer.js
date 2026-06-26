@@ -530,8 +530,6 @@ async function loadSignedPdfUrl() {
 
 }
 
-    const data = await response.json();
-
     document.getElementById("viewPdf").href = data.signedUrl;
     document.getElementById("downloadPdf").href = data.signedUrl;
 }
