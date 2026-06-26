@@ -926,7 +926,5 @@ async function loadSignedPdfUrl() {
         "Signed URL Error:",
         error
         );
-
     }
-
 }
