@@ -55,7 +55,7 @@ async function loadAssignment() {
 
         assignment = data[0];
 
-  await renderPage();
+        await renderPage();
 
     }
     catch(error) {
@@ -530,5 +530,3 @@ async function loadSignedPdfUrl() {
 
 }
 
-    document.getElementById("viewPdf").href = data.signedUrl;
-    document.getElementById("downloadPdf").href = data.signedUrl;
