@@ -532,4 +532,3 @@ async function loadSignedPdfUrl() {
 
     document.getElementById("viewPdf").href = data.signedUrl;
     document.getElementById("downloadPdf").href = data.signedUrl;
-}
