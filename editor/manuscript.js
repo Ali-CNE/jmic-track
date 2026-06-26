@@ -100,16 +100,20 @@ if (
 
     if (manuscript.pdf_path) {
 
-        const pdfURL =
-        `${SUPABASE_URL}/storage/v1/object/public/manuscripts/${manuscript.pdf_path}`;
+                pdfButton = `
 
-        pdfButton = `
-            <p>
-            <a href="${pdfURL}"
-            target="_blank">
-            📄 View Manuscript
-            </a>
-            </p>
+<p>
+<a id="viewPdf" 
+target="_blank">
+📄 View Manuscript
+</a>
+</p>
+
+<p>
+<a id="downloadPdf" download>
+⬇ Download PDF
+</a>
+</p>
         `;
     }
 
@@ -142,8 +146,17 @@ if (
         ${pdfButton}
 
     `;
-loadEditors();
-loadAssignedEditor();
+await loadSignedPdfUrl();
+
+await loadAssignedEditor();
+
+if (
+    currentEditor &&
+    currentEditor.role === "Editor-in-Chief"
+) {
+
+    await loadEditors();
+
 }
 
 /*==========================
@@ -233,7 +246,7 @@ async function assignEditor() {
         "Editor assigned successfully."
         );
 
-        loadAssignedEditor();
+        await loadAssignedEditor();
     }
 }
 
@@ -841,4 +854,79 @@ function selectReviewer() {
     ${reviewer.expertise || "-"}
 
     `;
+}
+
+async function loadSignedPdfUrl() {
+
+    if (!manuscript || !manuscript.pdf_path) {
+
+        return;
+
+    }
+
+    try {
+
+        const response =
+        await fetch(
+        "https://rjoccijmuynkqjmlfthz.supabase.co/functions/v1/get-manuscript-url",
+        {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+
+                pdf_path:
+                manuscript.pdf_path
+
+            })
+        });
+
+        if (!response.ok) {
+
+            console.error(
+            await response.text()
+            );
+
+            return;
+
+        }
+
+        const data =
+        await response.json();
+
+        const view =
+        document.getElementById(
+        "viewPdf"
+        );
+
+        const download =
+        document.getElementById(
+        "downloadPdf"
+        );
+
+        if (view) {
+
+            view.href =
+            data.signedUrl;
+
+        }
+
+        if (download) {
+
+            download.href =
+            data.signedUrl;
+
+        }
+
+    }
+    catch(error){
+
+        console.error(
+        "Signed URL Error:",
+        error
+        );
+
+    }
+
 }
