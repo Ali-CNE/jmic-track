@@ -26,6 +26,7 @@ async function loadAssignment() {
 
         return;
     }
+await loadSignedPdfUrl();
 
     try {
 
@@ -75,6 +76,7 @@ function renderPage() {
     if (assignment.review_submitted) {
 
         app.innerHTML = `
+
         <h2>
         Review Already Submitted
         </h2>
@@ -90,6 +92,7 @@ function renderPage() {
     if (assignment.invitation_status === "Declined") {
 
         app.innerHTML = `
+
         <h2>
         Invitation Declined
         </h2>
@@ -123,16 +126,16 @@ function renderPage() {
         ${assignment.pdf_path ? `
 
 <p>
-<a href="${SUPABASE_URL}/storage/v1/object/public/manuscripts/${assignment.pdf_path}"
-   target="_blank">
-   📄 View Manuscript
+<a id="viewPdf"
+target="_blank">
+📄 View Manuscript
 </a>
 </p>
 
 <p>
-<a href="${SUPABASE_URL}/storage/v1/object/public/manuscripts/${assignment.pdf_path}"
-   download>
-   ⬇ Download PDF
+<a id="downloadPdf"
+download>
+⬇ Download PDF
 </a>
 </p>
 
@@ -253,16 +256,15 @@ function renderReviewForm() {
     ${assignment.pdf_path ? `
 
 <p>
-<a href="${SUPABASE_URL}/storage/v1/object/public/manuscripts/${assignment.pdf_path}"
-   target="_blank">
-   📄 View Manuscript
+<a id="viewPdf"
+target="_blank">
+📄 View Manuscript
 </a>
 </p>
 
-<p>
-<a href="${SUPABASE_URL}/storage/v1/object/public/manuscripts/${assignment.pdf_path}"
-   download>
-   ⬇ Download PDF
+<a id="downloadPdf"
+download>
+⬇ Download PDF
 </a>
 </p>
 
@@ -456,4 +458,25 @@ async function submitReview() {
         "Error while submitting review."
         );
     }
+}
+
+async function loadSignedPdfUrl() {
+
+    const response = await fetch(
+        "https://rjoccijmuynkqjmlfthz.supabase.co/functions/v1/get-manuscript-url",
+        {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                pdf_path: assignment.pdf_path
+            })
+        }
+    );
+
+    const data = await response.json();
+
+    document.getElementById("viewPdf").href = data.signedUrl;
+    document.getElementById("downloadPdf").href = data.signedUrl;
 }
