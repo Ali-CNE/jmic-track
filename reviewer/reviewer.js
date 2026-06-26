@@ -4,8 +4,11 @@ const SUPABASE_URL =
 const SUPABASE_KEY =
 "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqb2NjaWptdXlua3FqbWxmdGh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwNjUzNzcsImV4cCI6MjA5NjY0MTM3N30.ZWslusLzSKN6KxD-k1Gm-1BFaB_SWZqirUm4KjnOfrQ";
 
-const params = new URLSearchParams(window.location.search);
-const token = params.get("token");
+const params =
+new URLSearchParams(window.location.search);
+
+const token =
+params.get("token");
 
 let assignment = null;
 
@@ -13,121 +16,146 @@ window.onload = loadAssignment;
 
 async function loadAssignment() {
 
-    const app = document.getElementById("app");
+    const app =
+    document.getElementById("app");
 
     if (!token) {
-        app.innerHTML = "<h2>Invalid reviewer link.</h2>";
+
+        app.innerHTML =
+        "<h2>Invalid reviewer link.</h2>";
+
         return;
     }
 
     try {
 
-        const response = await fetch(
+        const response =
+        await fetch(
             `${SUPABASE_URL}/rest/v1/review_assignments?secure_token=eq.${encodeURIComponent(token)}`,
             {
                 headers: {
                     apikey: SUPABASE_KEY,
-                    Authorization: `Bearer ${SUPABASE_KEY}`
+                    Authorization:
+                    `Bearer ${SUPABASE_KEY}`
                 }
             }
         );
 
-        const data = await response.json();
+        const data =
+        await response.json();
 
-        if (!Array.isArray(data) || data.length === 0) {
-            app.innerHTML = "<h2>Review assignment not found.</h2>";
+        if (!Array.isArray(data) ||
+            data.length === 0) {
+
+            app.innerHTML =
+            "<h2>Review assignment not found.</h2>";
+
             return;
         }
 
         assignment = data[0];
 
-        renderPage();
+  await renderPage();
 
-        // ✅ Only call AFTER assignment exists AND DOM is rendered
-        if (assignment.pdf_path) {
-            loadSignedPdfUrl();
-        }
+    }
+    catch(error) {
 
-    } catch (error) {
         console.error(error);
-        app.innerHTML = "<h2>Error loading assignment.</h2>";
+
+        app.innerHTML =
+        "<h2>Error loading assignment.</h2>";
     }
 }
 
-function renderPage() {
+async function renderPage() {
 
-    const app = document.getElementById("app");
+    const app =
+    document.getElementById("app");
 
     if (assignment.review_submitted) {
+
         app.innerHTML = `
-            <h2>Review Already Submitted</h2>
-            <p>Thank you for completing your review.</p>
+
+        <h2>
+        Review Already Submitted
+        </h2>
+
+        <p>
+        Thank you for completing your review.
+        </p>
         `;
+
         return;
     }
 
     if (assignment.invitation_status === "Declined") {
+
         app.innerHTML = `
-            <h2>Invitation Declined</h2>
-            <p>Thank you for your response.</p>
+
+        <h2>
+        Invitation Declined
+        </h2>
+
+        <p>
+        Thank you for your response.
+        </p>
         `;
+
         return;
     }
 
     if (assignment.invitation_status === "Pending") {
 
         app.innerHTML = `
-            <h2>${assignment.manuscript_title}</h2>
 
-            <p><strong>Article ID:</strong> ${assignment.article_id}</p>
+        <h2>
+        ${assignment.manuscript_title}
+        </h2>
 
-            <p><strong>Abstract:</strong> ${assignment.abstract || ""}</p>
+        <p>
+        <strong>Article ID:</strong>
+        ${assignment.article_id}
+        </p>
 
-            ${assignment.pdf_path ? `
-                <p><a id="viewPdf" target="_blank">📄 View Manuscript</a></p>
-                <p><a id="downloadPdf" download>⬇ Download PDF</a></p>
-            ` : ""}
+        <p>
+        <strong>Abstract:</strong>
+        ${assignment.abstract || ""}
+        </p>
 
-            <button onclick="acceptInvitation()">Accept Invitation</button>
-            <button onclick="declineInvitation()">Decline Invitation</button>
+        ${assignment.pdf_path ? `
+
+<p>
+<a id="viewPdf"
+target="_blank">
+📄 View Manuscript
+</a>
+</p>
+
+<p>
+<a id="downloadPdf"
+download>
+⬇ Download PDF
+</a>
+</p>
+
+` : ""}
+
+        <button onclick="acceptInvitation()">
+        Accept Invitation
+        </button>
+
+        <button onclick="declineInvitation()">
+        Decline Invitation
+        </button>
+
         `;
+
+await loadSignedPdfUrl();
 
         return;
     }
 
     renderReviewForm();
-}
-
-async function loadSignedPdfUrl() {
-
-    if (!assignment?.pdf_path) return;
-
-    try {
-
-        const response = await fetch(
-            `${SUPABASE_URL}/functions/v1/get-manuscript-url`,
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    pdf_path: assignment.pdf_path
-                })
-            }
-        );
-
-        const data = await response.json();
-
-        const viewPdf = document.getElementById("viewPdf");
-        const downloadPdf = document.getElementById("downloadPdf");
-
-        if (viewPdf) viewPdf.href = data.signedUrl;
-        if (downloadPdf) downloadPdf.href = data.signedUrl;
-
-    } catch (err) {
-        console.error("Failed to load signed URL:", err);
-    }
 }
 
 async function acceptInvitation() {
@@ -140,22 +168,33 @@ async function acceptInvitation() {
                 method: "PATCH",
                 headers: {
                     apikey: SUPABASE_KEY,
-                    Authorization: `Bearer ${SUPABASE_KEY}`,
-                    "Content-Type": "application/json",
-                    "Prefer": "return=representation"
+                    Authorization:
+                    `Bearer ${SUPABASE_KEY}`,
+                    "Content-Type":
+                    "application/json",
+                    "Prefer":
+                    "return=representation"
                 },
                 body: JSON.stringify({
-                    invitation_status: "Accepted"
+                    invitation_status:
+                    "Accepted"
                 })
             }
         );
 
-        assignment.invitation_status = "Accepted";
-        renderReviewForm();
+        assignment.invitation_status =
+        "Accepted";
 
-    } catch (error) {
+        await renderReviewForm();
+
+    }
+    catch(error) {
+
         console.error(error);
-        alert("Unable to accept invitation.");
+
+        alert(
+        "Unable to accept invitation."
+        );
     }
 }
 
@@ -169,106 +208,214 @@ async function declineInvitation() {
                 method: "PATCH",
                 headers: {
                     apikey: SUPABASE_KEY,
-                    Authorization: `Bearer ${SUPABASE_KEY}`,
-                    "Content-Type": "application/json",
-                    "Prefer": "return=representation"
+                    Authorization:
+                    `Bearer ${SUPABASE_KEY}`,
+                    "Content-Type":
+                    "application/json",
+                    "Prefer":
+                    "return=representation"
                 },
                 body: JSON.stringify({
-                    invitation_status: "Declined"
+                    invitation_status:
+                    "Declined"
                 })
             }
         );
 
-        assignment.invitation_status = "Declined";
-        renderPage();
+        assignment.invitation_status =
+        "Declined";
 
-    } catch (error) {
+        await renderPage();
+
+    }
+    catch(error) {
+
         console.error(error);
-        alert("Unable to decline invitation.");
+
+        alert(
+        "Unable to decline invitation."
+        );
     }
 }
 
-function renderReviewForm() {
+async function renderReviewForm() {
 
-    const app = document.getElementById("app");
+    const app =
+    document.getElementById("app");
 
     app.innerHTML = `
-        <h2>${assignment.manuscript_title}</h2>
 
-        <p><strong>Article ID:</strong> ${assignment.article_id}</p>
+    <h2>
+    ${assignment.manuscript_title}
+    </h2>
 
-        ${assignment.pdf_path ? `
-            <p><a id="viewPdf" target="_blank">📄 View Manuscript</a></p>
-            <p><a id="downloadPdf" download>⬇ Download PDF</a></p>
-        ` : ""}
+    <p>
+    <strong>Article ID:</strong>
+    ${assignment.article_id}
+    </p>
 
-        <label>Recommendation</label><br>
+    ${assignment.pdf_path ? `
 
-        <select id="recommendation">
-            <option value="Accept">Accept</option>
-            <option value="Minor Revision">Minor Revision</option>
-            <option value="Major Revision">Major Revision</option>
-            <option value="Reject">Reject</option>
-        </select>
+<p>
+<a id="viewPdf"
+target="_blank">
+📄 View Manuscript
+</a>
+</p>
 
-        <br><br>
+<p>
+<a id="downloadPdf"
+download>
+⬇ Download PDF
+</a>
+</p>
 
-        <label>Comments to Author</label><br>
-        <textarea id="comments_author" rows="8" style="width:100%;"></textarea>
+` : ""}
 
-        <br><br>
+    <label>
+    Recommendation
+    </label>
 
-        <label>Confidential Comments to Editor</label><br>
-        <textarea id="confidential_comments" rows="6" style="width:100%;"></textarea>
+    <br>
 
-        <br><br>
+    <select id="recommendation">
 
-        <label>Overall Score (1-10)</label><br>
-        <input type="number" id="score" min="1" max="10">
+        <option value="Accept">
+        Accept
+        </option>
 
-        <br><br>
+        <option value="Minor Revision">
+        Minor Revision
+        </option>
 
-        <button onclick="submitReview()">Submit Review</button>
+        <option value="Major Revision">
+        Major Revision
+        </option>
+
+        <option value="Reject">
+        Reject
+        </option>
+
+    </select>
+
+    <br><br>
+
+    <label>
+    Comments to Author
+    </label>
+
+    <br>
+
+    <textarea
+        id="comments_author"
+        rows="8"
+        style="width:100%;"></textarea>
+
+    <br><br>
+
+    <label>
+    Confidential Comments to Editor
+    </label>
+
+    <br>
+
+    <textarea
+        id="confidential_comments"
+        rows="6"
+        style="width:100%;"></textarea>
+
+    <br><br>
+
+    <label>
+    Overall Score (1-10)
+    </label>
+
+    <br>
+
+    <input
+        type="number"
+        id="score"
+        min="1"
+        max="10">
+
+    <br><br>
+
+    <button onclick="submitReview()">
+    Submit Review
+    </button>
+
     `;
+await loadSignedPdfUrl();
 
-    if (assignment.pdf_path) {
-        loadSignedPdfUrl();
-    }
 }
 
 async function submitReview() {
 
-    const recommendation = document.getElementById("recommendation").value;
-    const commentsAuthor = document.getElementById("comments_author").value;
-    const confidentialComments = document.getElementById("confidential_comments").value;
-    const score = document.getElementById("score").value;
+    const recommendation =
+    document.getElementById(
+    "recommendation").value;
+
+    const commentsAuthor =
+    document.getElementById(
+    "comments_author").value;
+
+    const confidentialComments =
+    document.getElementById(
+    "confidential_comments").value;
+
+    const score =
+    document.getElementById(
+    "score").value;
 
     try {
 
-        const reviewResponse = await fetch(
+        const reviewResponse =
+        await fetch(
             `${SUPABASE_URL}/rest/v1/reviews`,
             {
                 method: "POST",
                 headers: {
                     apikey: SUPABASE_KEY,
-                    Authorization: `Bearer ${SUPABASE_KEY}`,
-                    "Content-Type": "application/json"
+                    Authorization:
+                    `Bearer ${SUPABASE_KEY}`,
+                    "Content-Type":
+                    "application/json"
                 },
                 body: JSON.stringify({
-                    article_id: assignment.article_id,
-                    reviewer_email: assignment.reviewer_email,
+
+                    article_id:
+                    assignment.article_id,
+
+                    reviewer_email:
+                    assignment.reviewer_email,
+
+                    recommendation:
                     recommendation,
-                    comments_to_author: commentsAuthor,
-                    confidential_comments: confidentialComments,
+
+                    comments_to_author:
+                    commentsAuthor,
+
+                    confidential_comments:
+                    confidentialComments,
+
+                    score:
                     score
+
                 })
             }
         );
 
         if (!reviewResponse.ok) {
-            const error = await reviewResponse.text();
+
+            const error =
+            await reviewResponse.text();
+
             console.error(error);
-            alert("Failed to submit review.");
+
+            alert(
+            "Failed to submit review."
+            );
+
             return;
         }
 
@@ -278,24 +425,113 @@ async function submitReview() {
                 method: "PATCH",
                 headers: {
                     apikey: SUPABASE_KEY,
-                    Authorization: `Bearer ${SUPABASE_KEY}`,
-                    "Content-Type": "application/json",
-                    "Prefer": "return=representation"
+                    Authorization:
+                    `Bearer ${SUPABASE_KEY}`,
+                    "Content-Type":
+                    "application/json",
+                    "Prefer":
+                    "return=representation"
                 },
                 body: JSON.stringify({
                     review_submitted: true,
-                    invitation_status: "Submitted"
+                    invitation_status:
+                    "Submitted"
                 })
             }
         );
 
-        document.getElementById("app").innerHTML = `
-            <h2>Review Submitted Successfully</h2>
-            <p>Thank you for your review.</p>
+        document.getElementById("app")
+        .innerHTML = `
+
+        <h2>
+        Review Submitted Successfully
+        </h2>
+
+        <p>
+        Thank you for your review.
+        </p>
+
         `;
 
-    } catch (error) {
-        console.error(error);
-        alert("Error while submitting review.");
     }
+    catch(error) {
+
+        console.error(error);
+
+        alert(
+        "Error while submitting review."
+        );
+    }
+}
+
+async function loadSignedPdfUrl() {
+
+    if(!assignment || !assignment.pdf_path){
+
+        return;
+
+    }
+
+    try{
+
+        const response =
+        await fetch(
+        "https://rjoccijmuynkqjmlfthz.supabase.co/functions/v1/get-manuscript-url",
+        {
+            method:"POST",
+            headers:{
+                "Content-Type":
+                "application/json"
+            },
+            body:JSON.stringify({
+
+                pdf_path:
+                assignment.pdf_path
+
+            })
+        });
+
+        const data =
+        await response.json();
+
+        const view =
+        document.getElementById(
+        "viewPdf"
+        );
+
+        const download =
+        document.getElementById(
+        "downloadPdf"
+        );
+
+        if(view){
+
+            view.href =
+            data.signedUrl;
+
+        }
+
+        if(download){
+
+            download.href =
+            data.signedUrl;
+
+        }
+
+    }
+    catch(error){
+
+        console.error(
+        "Signed URL Error:",
+        error
+        );
+
+    }
+
+}
+
+    const data = await response.json();
+
+    document.getElementById("viewPdf").href = data.signedUrl;
+    document.getElementById("downloadPdf").href = data.signedUrl;
 }
