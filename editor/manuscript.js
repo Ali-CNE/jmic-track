@@ -881,20 +881,22 @@ async function loadSignedPdfUrl() {
 
     try {
 
-        const response = await fetch(
-    "https://rjoccijmuynkqjmlfthz.supabase.co/functions/v1/assign-editor",
-    {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "apikey": SUPABASE_KEY
-        },
-        body: JSON.stringify({
-            article_id: manuscript.article_id,
-            editor_email: editorEmail
-        })
-    }
-);
+        const response =
+        await fetch(
+        "https://rjoccijmuynkqjmlfthz.supabase.co/functions/v1/get-manuscript-url",
+        {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "apikey": SUPABASE_KEY
+            },
+            body: JSON.stringify({
+
+                pdf_path:
+                manuscript.pdf_path
+
+            })
+        });
 
         if (!response.ok) {
 
