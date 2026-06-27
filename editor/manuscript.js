@@ -198,10 +198,10 @@ async function assignEditor() {
 
     const editorEmail =
     document.getElementById(
-    "editorSelect"
+        "editorSelect"
     ).value;
 
-    if(!editorEmail){
+    if (!editorEmail) {
 
         alert(
         "Select an editor."
@@ -210,39 +210,60 @@ async function assignEditor() {
         return;
     }
 
-    const response =
-    await fetch(
-    `${SUPABASE_URL}/rest/v1/editor_assignments`,
-    {
-        method:"POST",
-        headers:{
-            apikey:SUPABASE_KEY,
-            Authorization:
-            `Bearer ${SUPABASE_KEY}`,
-            "Content-Type":
-            "application/json"
-        },
-        body:JSON.stringify({
+    try {
 
-            article_id:
-            manuscript.article_id,
+        const response =
+        await fetch(
+        "https://rjoccijmuynkqjmlfthz.supabase.co/functions/v1/assign-editor",
+        {
 
-            editor_email:
-            editorEmail,
+            method:"POST",
 
-            active:true
+            headers:{
+                "Content-Type":
+                "application/json"
+            },
 
-        })
-    });
+            body:JSON.stringify({
 
-    if(response.ok){
+                article_id:
+                manuscript.article_id,
+
+                editor_email:
+                editorEmail
+
+            })
+
+        });
+
+        const result =
+        await response.json();
+
+        if(!response.ok){
+
+            throw new Error(
+                result.error
+            );
+
+        }
 
         alert(
         "Editor assigned successfully."
         );
 
         await loadAssignedEditor();
+
     }
+    catch(error){
+
+        console.error(error);
+
+        alert(
+        "Unable to assign editor."
+        );
+
+    }
+
 }
 
 
@@ -273,7 +294,6 @@ async function loadAssignedEditor() {
         ${data[0].editor_email}`;
     }
 }
-
 
 
 /* ==========================
