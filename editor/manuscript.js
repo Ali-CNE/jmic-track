@@ -388,8 +388,8 @@ async function assignReviewer() {
 
     const email =
     document.getElementById(
-        "reviewerSelect"
-    ).value;
+        "reviewerEmail"
+    ).value.trim();
 
     const deadline =
     document.getElementById(
@@ -399,90 +399,67 @@ async function assignReviewer() {
     if (!email) {
 
         alert(
-            "Reviewer email required."
+        "Reviewer email required."
         );
 
         return;
+
     }
 
     try {
 
-        const secureToken =
-        crypto.randomUUID();
-
         const response =
         await fetch(
-            `${SUPABASE_URL}/rest/v1/review_assignments`,
-            {
-                method:"POST",
+        "https://rjoccijmuynkqjmlfthz.supabase.co/functions/v1/assign-reviewer",
+        {
 
-                headers:{
-                    apikey:SUPABASE_KEY,
-                    Authorization:
-                    `Bearer ${SUPABASE_KEY}`,
-                    "Content-Type":
-                    "application/json",
-                    "Prefer":
-                    "return=representation"
-                },
+            method:"POST",
 
-body:JSON.stringify({
+            headers:{
+                "Content-Type":"application/json",
+                "apikey":SUPABASE_KEY
+            },
 
-    article_id:
-    manuscript.article_id,
+            body:JSON.stringify({
 
-    manuscript_title:
-    manuscript.title,
+                article_id:
+                manuscript.article_id,
 
-    abstract:
-    manuscript.abstract,
+                manuscript_title:
+                manuscript.title,
 
-    reviewer_email:
-    email,
+                abstract:
+                manuscript.abstract,
 
-    review_token:
-    secureToken,
+                reviewer_email:
+                email,
 
-    secure_token:
-    secureToken,
+                review_deadline:
+                deadline,
 
-    invitation_status:
-    "Pending",
+                pdf_path:
+                manuscript.pdf_path
 
-    review_submitted:
-    false,
+            })
 
-    review_deadline:
-    deadline,
-
-    pdf_path:
-    manuscript.pdf_path
-})
-            }
-        );
+        });
 
         const result =
-        await response.text();
-
-        console.log(
-            "Review Assignment Response:",
-            result
-        );
+        await response.json();
 
         if(!response.ok){
 
-            alert(
-            "Reviewer assignment failed."
+            throw new Error(
+                result.error
             );
 
-            return;
         }
 
         alert(
         "Reviewer assigned successfully."
         );
 
-        loadReviewers();
+        await loadReviewers();
 
     }
     catch(error){
@@ -490,9 +467,11 @@ body:JSON.stringify({
         console.error(error);
 
         alert(
-        "Error assigning reviewer."
+        "Unable to assign reviewer."
         );
+
     }
+
 }
 
 
