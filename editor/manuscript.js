@@ -87,14 +87,7 @@ async function loadManuscript() {
     }
 
     manuscript = data[0];
-await loadAssignedEditor();
 
-if (
-    currentEditor &&
-    currentEditor.role === "Editor-in-Chief"
-) {
-    await loadEditors();
-}
 
     let pdfButton = "";
 
@@ -156,6 +149,8 @@ if (
 ) {
 
     await loadEditors();
+
+}
 
 }
 
@@ -926,5 +921,7 @@ async function loadSignedPdfUrl() {
         "Signed URL Error:",
         error
         );
+
     }
+
 }
