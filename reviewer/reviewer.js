@@ -369,76 +369,49 @@ async function submitReview() {
 
     try {
 
-        const reviewResponse =
+        const response =
         await fetch(
-            `${SUPABASE_URL}/rest/v1/reviews`,
-            {
-                method: "POST",
-                headers: {
-                    apikey: SUPABASE_KEY,
-                    Authorization:
-                    `Bearer ${SUPABASE_KEY}`,
-                    "Content-Type":
-                    "application/json"
-                },
-                body: JSON.stringify({
+        "https://rjoccijmuynkqjmlfthz.supabase.co/functions/v1/submit-review",
+        {
 
-                    article_id:
-                    assignment.article_id,
+            method:"POST",
 
-                    reviewer_email:
-                    assignment.reviewer_email,
+            headers:{
+                "Content-Type":"application/json",
+                "apikey":SUPABASE_KEY
+            },
 
-                    recommendation:
-                    recommendation,
+            body:JSON.stringify({
 
-                    comments_to_author:
-                    commentsAuthor,
+                recommendation:
+                recommendation,
 
-                    confidential_comments:
-                    confidentialComments,
+                comments_to_author:
+                commentsAuthor,
 
-                    score:
-                    score
+                confidential_comments:
+                confidentialComments,
 
-                })
-            }
-        );
+                score:
+                score,
 
-        if (!reviewResponse.ok) {
+                secure_token:
+                token
 
-            const error =
-            await reviewResponse.text();
+            })
 
-            console.error(error);
+        });
 
-            alert(
-            "Failed to submit review."
+        const result =
+        await response.json();
+
+        if(!response.ok){
+
+            throw new Error(
+                result.error
             );
 
-            return;
         }
-
-        await fetch(
-            `${SUPABASE_URL}/rest/v1/review_assignments?secure_token=eq.${encodeURIComponent(token)}`,
-            {
-                method: "PATCH",
-                headers: {
-                    apikey: SUPABASE_KEY,
-                    Authorization:
-                    `Bearer ${SUPABASE_KEY}`,
-                    "Content-Type":
-                    "application/json",
-                    "Prefer":
-                    "return=representation"
-                },
-                body: JSON.stringify({
-                    review_submitted: true,
-                    invitation_status:
-                    "Submitted"
-                })
-            }
-        );
 
         document.getElementById("app")
         .innerHTML = `
@@ -454,14 +427,16 @@ async function submitReview() {
         `;
 
     }
-    catch(error) {
+    catch(error){
 
         console.error(error);
 
         alert(
-        "Error while submitting review."
+        "Unable to submit review."
         );
+
     }
+
 }
 
 async function loadSignedPdfUrl() {
@@ -529,4 +504,3 @@ async function loadSignedPdfUrl() {
     }
 
 }
-
