@@ -632,9 +632,9 @@ async function updateDecision() {
             method:"POST",
 
             headers:{
-                apikey:SUPABASE_KEY,
+                apikey:SUPABASE_SERVICE_ROLE_KEY,
                 Authorization:
-                `Bearer ${SUPABASE_KEY}`,
+                `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
                 "Content-Type":
                 "application/json"
             },
