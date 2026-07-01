@@ -430,9 +430,6 @@ async function assignReviewer() {
 
                 abstract:
                 manuscript.abstract,
-
-                reviewer_name: 
-                reviewerName,
                 
                 reviewer_email:
                 email,
@@ -754,11 +751,6 @@ async function loadReviewerList() {
         document.getElementById(
         "reviewerSelect"
         );
-        const reviewerEmail =
-reviewerSelect.value;
-
-const reviewerName =
-reviewerSelect.selectedOptions[0].dataset.name;
 
         if(!select){
 
