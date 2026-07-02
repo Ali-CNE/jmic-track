@@ -211,7 +211,6 @@ console.log("Assignments:", assignments);
         updateStats(manuscripts);
 
         renderTable(manuscripts);
-setupRoleDashboard();
 
     }
     catch(error){
@@ -341,82 +340,4 @@ function openPasswordPage() {
 
     window.location.href =
     "change-password.html";
-}
-
-/* ==========================
-   ROLE-AWARE DASHBOARD
-========================== */
-
-function setupRoleDashboard(){
-
-    if(!currentEditor) return;
-
-    const assignEditorCard =
-    document.getElementById(
-        "assignEditorCard"
-    );
-
-    const decisionTitle =
-    document.getElementById(
-        "decisionTitle"
-    );
-
-    const decisionButton =
-    document.getElementById(
-        "decisionButton"
-    );
-
-    if(
-        currentEditor.role ===
-        "Editor-in-Chief"
-    ){
-
-        if(assignEditorCard){
-
-            assignEditorCard.style.display =
-            "block";
-
-        }
-
-        if(decisionTitle){
-
-            decisionTitle.textContent =
-            "Final Editorial Decision";
-
-        }
-
-        if(decisionButton){
-
-            decisionButton.textContent =
-            "Issue Final Decision";
-
-        }
-
-    }
-
-    else{
-
-        if(assignEditorCard){
-
-            assignEditorCard.style.display =
-            "none";
-
-        }
-
-        if(decisionTitle){
-
-            decisionTitle.textContent =
-            "Editorial Recommendation";
-
-        }
-
-        if(decisionButton){
-
-            decisionButton.textContent =
-            "Submit Recommendation";
-
-        }
-
-    }
-
 }
