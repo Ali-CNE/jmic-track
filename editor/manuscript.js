@@ -673,6 +673,7 @@ function copyReviewerLink(token) {
     );
 }
 
+/* ==========================
 function generateReviewerEmail(token) {
 
     const reviewLink =
@@ -707,6 +708,7 @@ Kind regards,`;
         "Invitation email copied to clipboard."
     );
 }
+========================== */
 
 
 async function loadReviewerList() {
