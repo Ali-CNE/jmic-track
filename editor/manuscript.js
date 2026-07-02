@@ -430,7 +430,7 @@ async function assignReviewer() {
 
                 abstract:
                 manuscript.abstract,
-                
+
                 reviewer_email:
                 email,
 
@@ -553,7 +553,6 @@ async function loadReviews() {
 /* ==========================
    DECISION
 ========================== */
-
 async function updateDecision() {
 
     const decision =
@@ -566,99 +565,87 @@ async function updateDecision() {
         "decisionRemarks"
     ).value;
 
-    await fetch(
-        `${SUPABASE_URL}/rest/v1/manuscripts?article_id=eq.${encodeURIComponent(articleId)}`,
-        {
-            method:"PATCH",
+    const decisionType =
+    document.getElementById(
+        "decisionType"
+    ).value;
 
-            headers:{
-                apikey:SUPABASE_KEY,
-                Authorization:
-                `Bearer ${SUPABASE_KEY}`,
-                "Content-Type":
-                "application/json"
-            },
+    const editor =
+    JSON.parse(
+        sessionStorage.getItem("editor")
+    );
 
-            body:JSON.stringify({
+    try{
 
-                status:decision,
+        const response =
+        await fetch(
 
-                last_updated:
-                new Date()
-                .toISOString()
-                .split("T")[0]
+            "https://rjoccijmuynkqjmlfthz.supabase.co/functions/v1/editor-decision",
 
-            })
+            {
+
+                method:"POST",
+
+                headers:{
+
+                    "Content-Type":"application/json",
+
+                    "apikey":
+                    SUPABASE_KEY
+
+                },
+
+                body:JSON.stringify({
+
+                    article_id:
+                    articleId,
+
+                    decision,
+
+                    remarks,
+
+                    decision_type:
+                    decisionType,
+
+                    editor_email:
+                    editor.editor_email
+
+                })
+
+            }
+
+        );
+
+        const result =
+        await response.json();
+
+        if(!response.ok){
+
+            throw new Error(
+                result.error
+            );
+
         }
-    );
 
-    await fetch(
-        `${SUPABASE_URL}/rest/v1/editorial_decisions`,
-        {
-            method:"POST",
+        alert(
+            "Decision saved successfully."
+        );
 
-            headers:{
-                apikey:SUPABASE_KEY,
-                Authorization:
-                `Bearer ${SUPABASE_KEY}`,
-                "Content-Type":
-                "application/json"
-            },
+        await loadManuscript();
+setupDecisionPanel();
 
-            body:JSON.stringify({
+    }
 
-                article_id:
-                articleId,
+    catch(error){
 
-                decision:
-                decision,
+        console.error(error);
 
-                editor_email:
-                JSON.parse(
-                sessionStorage
-                .getItem("editor")
-                ).editor_email,
+        alert(
+            error.message
+        );
 
-                remarks:
-                remarks
+    }
 
-            })
-        }
-    );
-
-    await fetch(
-        `${SUPABASE_URL}/rest/v1/status_history`,
-        {
-            method:"POST",
-
-            headers:{
-                apikey:SUPABASE_KEY,
-                Authorization:
-                `Bearer ${SUPABASE_KEY}`,
-                "Content-Type":
-                "application/json"
-            },
-
-            body:JSON.stringify({
-
-                article_id:
-                articleId,
-
-                status:
-                decision,
-
-                remarks:
-                remarks
-
-            })
-        }
-    );
-
-    alert(
-        "Decision updated."
-    );
-
-    loadManuscript();
 }
 
 function copyReviewerLink(token) {
@@ -921,6 +908,34 @@ async function loadSignedPdfUrl() {
         "Signed URL Error:",
         error
         );
+
+    }
+
+}
+
+function setupDecisionPanel(){
+
+    const decisionType =
+    document.getElementById(
+        "decisionType"
+    );
+
+    if(!decisionType) return;
+
+    if(
+        currentEditor.role !==
+        "Editor-in-Chief"
+    ){
+
+        decisionType.innerHTML = `
+
+        <option value="Recommendation">
+
+            Recommendation
+
+        </option>
+
+        `;
 
     }
 

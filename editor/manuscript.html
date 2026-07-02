@@ -119,30 +119,59 @@ No reviews yet.
 
 <h2>Editorial Decision</h2>
 
+<label><b>Decision Type</b></label>
+
+<br><br>
+
+<select id="decisionType">
+
+    <option value="Recommendation">
+        Recommendation
+    </option>
+
+    <option value="Final">
+        Final Decision
+    </option>
+
+</select>
+
+<br><br>
+
+<label><b>Decision</b></label>
+
+<br><br>
+
 <select id="decision">
 
-<option>Accept</option>
-<option>Minor Revision</option>
-<option>Major Revision</option>
-<option>Reject</option>
+    <option>Accept</option>
+
+    <option>Minor Revision</option>
+
+    <option>Major Revision</option>
+
+    <option>Reject</option>
 
 </select>
 
 <br><br>
 
 <textarea
+
 id="decisionRemarks"
+
 rows="5"
-placeholder="Remarks">
-</textarea>
+
+placeholder="Editorial remarks..."
+
+></textarea>
 
 <br><br>
 
 <button onclick="updateDecision()">
-Update Decision
-</button>
 
-</div>
+Update Decision
+
+</button>
 
 </div>
 
