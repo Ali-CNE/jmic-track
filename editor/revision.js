@@ -345,13 +345,13 @@ async function submitRevision(){
 
         if(!response.ok){
 
-            throw new Error(
+    const err = await response.text();
 
-            "Unable to upload revised manuscript."
+    console.log(err);
 
-            );
+    throw new Error(err);
 
-        }
+}
 
         //--------------------------------------------------
         // Upload response letter
@@ -386,15 +386,15 @@ async function submitRevision(){
 
         );
 
-        if(!response.ok){
+       if(!response.ok){
 
-            throw new Error(
+    const err = await response.text();
 
-            "Unable to upload response letter."
+    console.log(err);
 
-            );
+    throw new Error(err);
 
-        }
+}
 
         //--------------------------------------------------
         // Notify Edge Function
