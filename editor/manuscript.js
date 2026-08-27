@@ -378,7 +378,139 @@ Generate Email
 }
 
 
+function showAddReviewerForm() {
 
+    document.getElementById(
+        "addReviewerForm"
+    ).style.display = "block";
+
+}
+
+
+function hideAddReviewerForm() {
+
+    document.getElementById(
+        "addReviewerForm"
+    ).style.display = "none";
+
+}
+
+
+async function addNewReviewer() {
+
+    const reviewerName =
+    document.getElementById(
+        "newReviewerName"
+    ).value.trim();
+
+    const reviewerEmail =
+    document.getElementById(
+        "newReviewerEmail"
+    ).value.trim();
+
+    if (
+        !reviewerName ||
+        !reviewerEmail
+    ) {
+
+        alert(
+            "Reviewer name and email are required."
+        );
+
+        return;
+
+    }
+
+    try {
+
+        const response =
+        await fetch(
+
+            `${SUPABASE_URL}/functions/v1/add-reviewer`,
+
+            {
+
+                method:
+                "POST",
+
+                headers: {
+
+                    "Content-Type":
+                    "application/json",
+
+                    apikey:
+                    SUPABASE_KEY
+
+                },
+
+                body:
+                JSON.stringify({
+
+                    reviewer_name:
+                    reviewerName,
+
+                    reviewer_email:
+                    reviewerEmail
+
+                })
+
+            }
+
+        );
+
+        const result =
+        await response.json();
+
+        if (!response.ok) {
+
+            throw new Error(
+
+                result.error ||
+                "Unable to add reviewer."
+
+            );
+
+        }
+
+        alert(
+            "Reviewer added successfully."
+        );
+
+        // Clear form
+
+        document.getElementById(
+            "newReviewerName"
+        ).value = "";
+
+        document.getElementById(
+            "newReviewerEmail"
+        ).value = "";
+
+        hideAddReviewerForm();
+
+        // Reload reviewer dropdown
+
+        await loadReviewers();
+
+        // Automatically select the new reviewer
+
+        document.getElementById(
+            "reviewerEmail"
+        ).value =
+        reviewerEmail;
+
+    }
+    catch (error) {
+
+        console.error(error);
+
+        alert(
+            error.message
+        );
+
+    }
+
+}
 
 /* ==========================
    ASSIGN REVIEWER

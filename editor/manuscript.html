@@ -1,14 +1,20 @@
 <!DOCTYPE html>
+
 <html lang="en">
 
 <head>
 
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<meta
+name="viewport"
+content="width=device-width, initial-scale=1.0">
 
 <title>Manuscript Management</title>
 
-<link rel="stylesheet" href="../style.css">
+<link
+rel="stylesheet"
+href="../style.css">
 
 </head>
 
@@ -16,45 +22,84 @@
 
 <div class="container">
 
+<!-- ==========================
+MANUSCRIPT INFORMATION
+========================== -->
+
 <div class="header">
-<h1>Journal Management System</h1>
-<p>Journal of Materials Intelligence and Computing</p>
+
+<h1>
+Journal Management System
+</h1>
+
+<p>
+Journal of Materials Intelligence and Computing
+</p>
+
 </div>
 
-<div id="manuscriptInfo" class="card">
+<div
+id="manuscriptInfo"
+class="card">
+
 Loading manuscript...
+
 </div>
+
+<!-- ==========================
+EDITOR AND REVIEWER ASSIGNMENT
+========================== -->
 
 <div class="card">
 
+<!-- ==========================
+ASSIGN EDITOR
+========================== -->
+
 <h2 id="assignEditorTitle">
+
 Assign Editor
+
 </h2>
 
 <select id="editorSelect">
+
 <option value="">
 Select Editor
 </option>
+
 </select>
 
-<button 
+<button
 id="assignEditorButton"
 onclick="assignEditor()">
+
 Assign Editor
+
 </button>
 
 <div id="currentEditor"></div>
 
+<hr style="margin:25px 0;">
 
-<h2>Assign Reviewer</h2>
+<!-- ==========================
+ASSIGN REVIEWER
+========================== -->
 
-<select 
+<h2>
+
+Assign Reviewer
+
+</h2>
+
+<select
 id="reviewerSelect"
 onchange="selectReviewer()">
- 
+
 <option value="">
-        Select Reviewer
-    </option>
+Select Reviewer
+</option>
+
 </select>
 
 <div
@@ -63,7 +108,9 @@ class="card"
 style="
 margin-top:10px;
 padding:10px;
-display:none;">
+display:none;
+">
+
 </div>
 
 <input
@@ -76,98 +123,236 @@ readonly>
 type="date"
 id="reviewDeadline">
 
-<button onclick="assignReviewer()">
+<button
+onclick="assignReviewer()">
+
 Assign Reviewer
+
+</button>
+
+<!-- ==========================
+ADD NEW REVIEWER
+========================== -->
+
+<div
+style="margin-top:20px;">
+
+<button
+type="button"
+onclick="showAddReviewerForm()">
+
+* Add New Reviewer
+
 </button>
 
 </div>
 
+<div
+id="addReviewerForm"
+class="card"
+style="
+display:none;
+margin-top:15px;
+padding:15px;
+background:#f8f8f8;
+">
+
+<h3>
+
+Add New Reviewer
+
+</h3>
+
+<input
+type="text"
+id="newReviewerName"
+placeholder="Reviewer Name">
+
+<br><br>
+
+<input
+type="email"
+id="newReviewerEmail"
+placeholder="Reviewer Email">
+
+<br><br>
+
+<button
+type="button"
+onclick="addNewReviewer()">
+
+Save Reviewer
+
+</button>
+
+<button
+type="button"
+onclick="hideAddReviewerForm()">
+
+Cancel
+
+</button>
+
+</div>
+
+</div>
+
+<!-- ==========================
+ASSIGNED REVIEWERS
+========================== -->
+
 <div class="card">
 
-<h2>Assigned Reviewers</h2>
+<h2>
+
+Assigned Reviewers
+
+</h2>
 
 <table id="reviewerTable">
 
 <thead>
+
 <tr>
-<th>Email</th>
-<th>Status</th>
-<th>Review Submitted</th>
-<th>Deadline</th>
-<th>Review Link</th>
-<th>Invitation</th>
+
+<th>
+Email
+</th>
+
+<th>
+Status
+</th>
+
+<th>
+Review Submitted
+</th>
+
+<th>
+Deadline
+</th>
+
+<th>
+Review Link
+</th>
+
+<th>
+Invitation
+</th>
+
 </tr>
+
 </thead>
 
-<tbody></tbody>
+<tbody>
+
+</tbody>
 
 </table>
 
 </div>
 
+<!-- ==========================
+REVIEWS RECEIVED
+========================== -->
+
 <div class="card">
 
-<h2>Reviews Received</h2>
+<h2>
+
+Reviews Received
+
+</h2>
 
 <div id="reviewsContainer">
+
 No reviews yet.
+
 </div>
 
 </div>
+
+<!-- ==========================
+EDITORIAL DECISION
+========================== -->
 
 <div class="card">
 
-<h2>Editorial Decision</h2>
+<h2>
 
-<label><b>Decision Type</b></label>
+Editorial Decision
+
+</h2>
+
+<label>
+
+<b>
+Decision Type
+</b>
+
+</label>
 
 <br><br>
 
 <select id="decisionType">
 
-    <option value="Recommendation">
-        Recommendation
-    </option>
+<option value="Recommendation">
 
-    <option value="Final">
-        Final Decision
-    </option>
+Recommendation
+
+</option>
+
+<option value="Final">
+
+Final Decision
+
+</option>
 
 </select>
 
 <br><br>
 
-<label><b>Decision</b></label>
+<label>
+
+<b>
+Decision
+</b>
+
+</label>
 
 <br><br>
 
 <select id="decision">
 
-    <option>Accept</option>
+<option>
+Accept
+</option>
 
-    <option>Minor Revision</option>
+<option>
+Minor Revision
+</option>
 
-    <option>Major Revision</option>
+<option>
+Major Revision
+</option>
 
-    <option>Reject</option>
+<option>
+Reject
+</option>
 
 </select>
 
 <br><br>
 
 <textarea
-
 id="decisionRemarks"
-
 rows="5"
-
-placeholder="Editorial remarks..."
-
-></textarea>
+placeholder="Editorial remarks...">
+</textarea>
 
 <br><br>
 
-<button onclick="updateDecision()">
+<button
+onclick="updateDecision()">
 
 Update Decision
 
@@ -175,7 +360,12 @@ Update Decision
 
 </div>
 
+<!-- ==========================
+JAVASCRIPT
+========================== -->
+
 <script src="manuscript.js"></script>
 
 </body>
+
 </html>
