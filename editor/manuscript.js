@@ -297,46 +297,255 @@ async function loadAssignedEditor() {
 
 
 /* ==========================
-   REVIEWERS
+REVIEWERS
 ========================== */
 
-async function loadReviewers() {
+/* --------------------------
+LOAD REVIEWER DROPDOWN
+-------------------------- */
+
+async function loadReviewerList() {
+
+```
+try {
 
     const response =
     await fetch(
-        `${SUPABASE_URL}/rest/v1/review_assignments?article_id=eq.${encodeURIComponent(articleId)}`,
+
+        `${SUPABASE_URL}/rest/v1/reviewers?select=name,email&order=name.asc`,
+
         {
+
             headers: {
-                apikey: SUPABASE_KEY,
+
+                apikey:
+                SUPABASE_KEY,
+
                 Authorization:
                 `Bearer ${SUPABASE_KEY}`
+
             }
+
         }
+
     );
+
+
+    if (!response.ok) {
+
+        throw new Error(
+            "Unable to load reviewer list."
+        );
+
+    }
+
 
     const reviewers =
     await response.json();
 
-    const tbody =
-    document.querySelector(
-        "#reviewerTable tbody"
+
+    const reviewerSelect =
+    document.getElementById(
+        "reviewerSelect"
     );
 
-    tbody.innerHTML = "";
 
-    reviewers.forEach(r => {
+    reviewerSelect.innerHTML = `
 
-        const reviewLink =
-        `${window.location.origin}/reviewer/?token=${r.secure_token}`;
+        <option value="">
+        Select Reviewer
+        </option>
 
-        const row =
-        document.createElement("tr");
+    `;
 
-        row.innerHTML = `
 
-        <td>${r.reviewer_email}</td>
+    reviewers.forEach(reviewer => {
 
-        <td>${r.invitation_status}</td>
+        const option =
+        document.createElement(
+            "option"
+        );
+
+
+        option.value =
+        reviewer.email;
+
+
+        option.textContent =
+        `${reviewer.name} (${reviewer.email})`;
+
+
+        option.dataset.name =
+        reviewer.name;
+
+
+        reviewerSelect.appendChild(
+            option
+        );
+
+    });
+
+}
+catch (error) {
+
+    console.error(
+        "Reviewer List Error:",
+        error
+    );
+
+}
+```
+
+}
+
+/* --------------------------
+SELECT REVIEWER
+-------------------------- */
+
+function selectReviewer() {
+
+```
+const reviewerSelect =
+document.getElementById(
+    "reviewerSelect"
+);
+
+
+const reviewerEmail =
+document.getElementById(
+    "reviewerEmail"
+);
+
+
+const reviewerInfo =
+document.getElementById(
+    "reviewerInfo"
+);
+
+
+const selectedOption =
+reviewerSelect.options[
+    reviewerSelect.selectedIndex
+];
+
+
+if (!reviewerSelect.value) {
+
+    reviewerEmail.value = "";
+
+    reviewerInfo.style.display =
+    "none";
+
+    reviewerInfo.innerHTML = "";
+
+    return;
+
+}
+
+
+reviewerEmail.value =
+reviewerSelect.value;
+
+
+reviewerInfo.innerHTML = `
+
+    <strong>
+    Reviewer:
+    </strong>
+
+    ${selectedOption.dataset.name}
+
+    <br>
+
+    <strong>
+    Email:
+    </strong>
+
+    ${reviewerSelect.value}
+
+`;
+
+
+reviewerInfo.style.display =
+"block";
+```
+
+}
+
+/* --------------------------
+LOAD ASSIGNED REVIEWERS
+-------------------------- */
+
+async function loadReviewers() {
+
+```
+const response =
+await fetch(
+
+    `${SUPABASE_URL}/rest/v1/review_assignments?article_id=eq.${encodeURIComponent(articleId)}`,
+
+    {
+
+        headers: {
+
+            apikey:
+            SUPABASE_KEY,
+
+            Authorization:
+            `Bearer ${SUPABASE_KEY}`
+
+        }
+
+    }
+
+);
+
+
+if (!response.ok) {
+
+    console.error(
+        "Unable to load assigned reviewers."
+    );
+
+    return;
+
+}
+
+
+const reviewers =
+await response.json();
+
+
+const tbody =
+document.querySelector(
+    "#reviewerTable tbody"
+);
+
+
+tbody.innerHTML = "";
+
+
+reviewers.forEach(r => {
+
+    const reviewLink =
+    `${window.location.origin}/reviewer/?token=${r.secure_token}`;
+
+
+    const row =
+    document.createElement(
+        "tr"
+    );
+
+
+    row.innerHTML = `
+
+        <td>
+        ${r.reviewer_email}
+        </td>
+
+        <td>
+        ${r.invitation_status}
+        </td>
 
         <td>
         ${r.review_submitted ? "Yes" : "No"}
@@ -347,168 +556,242 @@ async function loadReviewers() {
         </td>
 
         <td>
+
         <input
-id="link_${r.secure_token}"
+        id="link_${r.secure_token}"
         type="text"
         value="${reviewLink}"
         readonly
         style="width:100%;">
 
-<button
-onclick="copyReviewerLink('${r.secure_token}')">
-Copy
-</button>
+        <button
+        onclick="copyReviewerLink('${r.secure_token}')">
+        Copy
+        </button>
 
         </td>
 
-<td>
+        <td>
 
-<button
-onclick="generateReviewerEmail('${r.secure_token}')">
-Generate Email
-</button>
+        <button
+        onclick="generateReviewerEmail('${r.secure_token}')">
+        Generate Email
+        </button>
 
-</td>
+        </td>
 
-        `;
+    `;
 
-        tbody.appendChild(row);
-    });
+
+    tbody.appendChild(
+        row
+    );
+
+});
+```
 
 }
 
+/* --------------------------
+SHOW ADD REVIEWER FORM
+-------------------------- */
 
 function showAddReviewerForm() {
 
-    document.getElementById(
-        "addReviewerForm"
-    ).style.display = "block";
+```
+const form =
+document.getElementById(
+    "addReviewerForm"
+);
+
+
+form.style.display =
+"block";
+```
 
 }
 
+/* --------------------------
+HIDE ADD REVIEWER FORM
+-------------------------- */
 
 function hideAddReviewerForm() {
 
-    document.getElementById(
-        "addReviewerForm"
-    ).style.display = "none";
+```
+const form =
+document.getElementById(
+    "addReviewerForm"
+);
+
+
+form.style.display =
+"none";
+```
+
+}
+
+/* --------------------------
+ADD NEW REVIEWER
+-------------------------- */
+
+async function addNewReviewer() {
+
+```
+const reviewerName =
+document.getElementById(
+    "newReviewerName"
+).value.trim();
+
+
+const reviewerEmail =
+document.getElementById(
+    "newReviewerEmail"
+).value.trim()
+.toLowerCase();
+
+
+if (!reviewerName) {
+
+    alert(
+        "Reviewer name is required."
+    );
+
+    return;
 
 }
 
 
-async function addNewReviewer() {
+if (!reviewerEmail) {
 
-    const reviewerName =
-    document.getElementById(
-        "newReviewerName"
-    ).value.trim();
+    alert(
+        "Reviewer email is required."
+    );
 
-    const reviewerEmail =
-    document.getElementById(
-        "newReviewerEmail"
-    ).value.trim();
+    return;
 
-    if (
-        !reviewerName ||
-        !reviewerEmail
-    ) {
+}
 
-        alert(
-            "Reviewer name and email are required."
-        );
 
-        return;
+try {
 
-    }
+    const response =
+    await fetch(
 
-    try {
+        `${SUPABASE_URL}/functions/v1/add-reviewer`,
 
-        const response =
-        await fetch(
+        {
 
-            `${SUPABASE_URL}/functions/v1/add-reviewer`,
+            method:
+            "POST",
 
-            {
+            headers: {
 
-                method:
-                "POST",
+                "Content-Type":
+                "application/json",
 
-                headers: {
+                apikey:
+                SUPABASE_KEY
 
-                    "Content-Type":
-                    "application/json",
+            },
 
-                    apikey:
-                    SUPABASE_KEY
+            body:
+            JSON.stringify({
 
-                },
+                reviewer_name:
+                reviewerName,
 
-                body:
-                JSON.stringify({
+                reviewer_email:
+                reviewerEmail
 
-                    reviewer_name:
-                    reviewerName,
-
-                    reviewer_email:
-                    reviewerEmail
-
-                })
-
-            }
-
-        );
-
-        const result =
-        await response.json();
-
-        if (!response.ok) {
-
-            throw new Error(
-
-                result.error ||
-                "Unable to add reviewer."
-
-            );
+            })
 
         }
 
-        alert(
-            "Reviewer added successfully."
-        );
+    );
 
-        // Clear form
 
-        document.getElementById(
-            "newReviewerName"
-        ).value = "";
+    const result =
+    await response.json();
 
-        document.getElementById(
-            "newReviewerEmail"
-        ).value = "";
 
-        hideAddReviewerForm();
+    if (!response.ok) {
 
-        // Reload reviewer dropdown
+        throw new Error(
 
-        await loadReviewers();
+            result.error ||
+            "Unable to add reviewer."
 
-        // Automatically select the new reviewer
-
-        document.getElementById(
-            "reviewerEmail"
-        ).value =
-        reviewerEmail;
-
-    }
-    catch (error) {
-
-        console.error(error);
-
-        alert(
-            error.message
         );
 
     }
+
+
+    alert(
+        "Reviewer added successfully."
+    );
+
+
+    /* Clear form */
+
+    document.getElementById(
+        "newReviewerName"
+    ).value = "";
+
+
+    document.getElementById(
+        "newReviewerEmail"
+    ).value = "";
+
+
+    /* Hide form */
+
+    hideAddReviewerForm();
+
+
+    /* Reload reviewer dropdown */
+
+    await loadReviewerList();
+
+
+    /* Select the newly added reviewer */
+
+    const reviewerSelect =
+    document.getElementById(
+        "reviewerSelect"
+    );
+
+
+    reviewerSelect.value =
+    reviewerEmail;
+
+
+    /* Populate reviewer information
+       and hidden email field */
+
+    selectReviewer();
+
+
+    /* Optional:
+       keep assigned reviewer table updated */
+
+    await loadReviewers();
+
+}
+catch (error) {
+
+    console.error(
+        "Add Reviewer Error:",
+        error
+    );
+
+
+    alert(
+        error.message ||
+        "Unable to add reviewer."
+    );
+
+}
+```
 
 }
 
