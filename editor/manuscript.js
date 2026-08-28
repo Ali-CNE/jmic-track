@@ -5,614 +5,306 @@ const SUPABASE_KEY =
 "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqb2NjaWptdXlua3FqbWxmdGh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwNjUzNzcsImV4cCI6MjA5NjY0MTM3N30.ZWslusLzSKN6KxD-k1Gm-1BFaB_SWZqirUm4KjnOfrQ";
 
 const params =
-new URLSearchParams(
-window.location.search
-);
+new URLSearchParams(window.location.search);
 
 const articleId =
 params.get("id");
 
 let manuscript = null;
-let currentEditor = null;
-
-/* ==========================
-PAGE LOAD
-========================== */
+let reviewerList = [];
 
 window.onload = loadPage;
 
 async function loadPage() {
 
-```
-try {
-
     await loadManuscript();
-
-    if (!manuscript) {
-        return;
-    }
-
-    await loadReviewerList();
 
     await loadReviewers();
 
     await loadReviews();
 
-    await loadEditors();
-
-    await loadAssignedEditor();
-
-    applyEditorPermissions();
-
-}
-catch (error) {
-
-    console.error(
-        "Page Load Error:",
-        error
-    );
-
-}
-```
-
+await loadReviewerList();
 }
 
-/* ==========================
-CURRENT EDITOR
-========================== */
-
-function loadCurrentEditor() {
-
-```
 const storedEditor =
-sessionStorage.getItem(
-    "editor"
-);
+sessionStorage.getItem("editor");
 
-if (!storedEditor) {
-
-    currentEditor = null;
-
-    return;
-
-}
-
-try {
+if(storedEditor){
 
     currentEditor =
-    JSON.parse(
-        storedEditor
-    );
+    JSON.parse(storedEditor);
 
 }
-catch (error) {
 
-    console.error(
-        "Invalid editor session:",
-        error
-    );
+if(
+    currentEditor &&
+    currentEditor.role !== "Editor-in-Chief"
+){
 
-    currentEditor = null;
+    document.getElementById(
+    "assignEditorTitle"
+    ).style.display = "none";
 
+    document.getElementById(
+    "editorSelect"
+    ).style.display = "none";
+
+    document.getElementById(
+    "assignEditorButton"
+    ).style.display = "none";
 }
-```
 
-}
 
 /* ==========================
-EDITOR PERMISSIONS
-========================== */
-
-function applyEditorPermissions() {
-
-```
-loadCurrentEditor();
-
-if (!currentEditor) {
-    return;
-}
-
-if (
-    currentEditor.role !==
-    "Editor-in-Chief"
-) {
-
-    const title =
-    document.getElementById(
-        "assignEditorTitle"
-    );
-
-    const select =
-    document.getElementById(
-        "editorSelect"
-    );
-
-    const button =
-    document.getElementById(
-        "assignEditorButton"
-    );
-
-    if (title) {
-        title.style.display =
-        "none";
-    }
-
-    if (select) {
-        select.style.display =
-        "none";
-    }
-
-    if (button) {
-        button.style.display =
-        "none";
-    }
-
-}
-```
-
-}
-
-/* ==========================
-MANUSCRIPT
+   MANUSCRIPT
 ========================== */
 
 async function loadManuscript() {
 
-```
-if (!articleId) {
-
-    document.getElementById(
-        "manuscriptInfo"
-    ).innerHTML =
-    "Invalid manuscript ID.";
-
-    return;
-
-}
-
-
-const response =
-await fetch(
-
-    `${SUPABASE_URL}/rest/v1/manuscripts?article_id=eq.${encodeURIComponent(articleId)}`,
-
-    {
-
-        headers: {
-
-            apikey:
-            SUPABASE_KEY,
-
-            Authorization:
-            `Bearer ${SUPABASE_KEY}`
-
+    const response =
+    await fetch(
+        `${SUPABASE_URL}/rest/v1/manuscripts?article_id=eq.${encodeURIComponent(articleId)}`,
+        {
+            headers: {
+                apikey: SUPABASE_KEY,
+                Authorization:
+                `Bearer ${SUPABASE_KEY}`
+            }
         }
-
-    }
-
-);
-
-
-if (!response.ok) {
-
-    throw new Error(
-        "Unable to load manuscript."
     );
 
-}
+    const data =
+    await response.json();
+
+    if (!data.length) {
+
+        document.getElementById(
+            "manuscriptInfo"
+        ).innerHTML =
+        "Manuscript not found.";
+
+        return;
+    }
+
+    manuscript = data[0];
 
 
-const data =
-await response.json();
+    let pdfButton = "";
 
+    if (manuscript.pdf_path) {
 
-if (
-    !Array.isArray(data) ||
-    data.length === 0
-) {
+                pdfButton = `
+
+<p>
+<a id="viewPdf" 
+target="_blank">
+📄 View Manuscript
+</a>
+</p>
+
+<p>
+<a id="downloadPdf" download>
+⬇ Download PDF
+</a>
+</p>
+        `;
+    }
 
     document.getElementById(
         "manuscriptInfo"
-    ).innerHTML =
-    "Manuscript not found.";
+    ).innerHTML = `
 
-    manuscript = null;
-
-    return;
-
-}
-
-
-manuscript =
-data[0];
-
-
-let pdfButton = "";
-
-
-if (manuscript.pdf_path) {
-
-    const pdfURL =
-    `${SUPABASE_URL}/storage/v1/object/public/manuscripts/${manuscript.pdf_path}`;
-
-
-    pdfButton = `
+        <h2>${manuscript.title}</h2>
 
         <p>
-
-        <a
-        href="${pdfURL}"
-        target="_blank">
-
-        📄 View Manuscript
-
-        </a>
-
+        <strong>Article ID:</strong>
+        ${manuscript.article_id}
         </p>
 
+        <p>
+        <strong>Author:</strong>
+        ${manuscript.corresponding_author}
+        </p>
+
+        <p>
+        <strong>Status:</strong>
+        ${manuscript.status}
+        </p>
+
+        <p>
+        <strong>Assigned Editor:</strong>
+        ${manuscript.assigned_editor || "-"}
+        </p>
+
+        ${pdfButton}
+
     `;
+await loadSignedPdfUrl();
+
+await loadAssignedEditor();
+
+if (
+    currentEditor &&
+    currentEditor.role === "Editor-in-Chief"
+) {
+
+    await loadEditors();
 
 }
 
-
-document.getElementById(
-    "manuscriptInfo"
-).innerHTML = `
-
-    <h2>
-    ${manuscript.title || ""}
-    </h2>
-
-    <p>
-
-    <strong>
-    Article ID:
-    </strong>
-
-    ${manuscript.article_id || ""}
-
-    </p>
-
-    <p>
-
-    <strong>
-    Author:
-    </strong>
-
-    ${manuscript.corresponding_author || "-"}
-
-    </p>
-
-    <p>
-
-    <strong>
-    Status:
-    </strong>
-
-    ${manuscript.status || "-"}
-
-    </p>
-
-    <p>
-
-    <strong>
-    Assigned Editor:
-    </strong>
-
-    ${manuscript.assigned_editor || "-"}
-
-    </p>
-
-    ${pdfButton}
-
-`;
-```
-
 }
 
-/* ==========================
-EDITORS
-========================== */
+/*==========================
+Assign Editor
+==========================*/
 
 async function loadEditors() {
 
-```
-const select =
-document.getElementById(
-    "editorSelect"
-);
-
-if (!select) {
-    return;
-}
-
-
-const response =
-await fetch(
-
+    const response =
+    await fetch(
     `${SUPABASE_URL}/rest/v1/editors?select=editor_name,editor_email,role`,
-
     {
-
-        headers: {
-
-            apikey:
-            SUPABASE_KEY,
-
+        headers:{
+            apikey:SUPABASE_KEY,
             Authorization:
             `Bearer ${SUPABASE_KEY}`
-
         }
+    });
 
-    }
+    const editors =
+    await response.json();
 
-);
-
-
-if (!response.ok) {
-
-    console.error(
-        "Unable to load editors."
+    const select =
+    document.getElementById(
+    "editorSelect"
     );
 
-    return;
+    select.innerHTML =
+    '<option value="">Select Editor</option>';
 
+    editors.forEach(editor=>{
+
+        select.innerHTML += `
+        <option value="${editor.editor_email}">
+        ${editor.editor_name}
+        (${editor.role})
+        </option>
+        `;
+    });
 }
 
-
-const editors =
-await response.json();
-
-
-select.innerHTML = `
-
-    <option value="">
-    Select Editor
-    </option>
-
-`;
-
-
-editors.forEach(
-    editor => {
-
-        const option =
-        document.createElement(
-            "option"
-        );
-
-
-        option.value =
-        editor.editor_email;
-
-
-        option.textContent =
-        `${editor.editor_name} (${editor.role})`;
-
-
-        select.appendChild(
-            option
-        );
-
-    }
-);
-```
-
-}
-
-/* ==========================
-ASSIGN EDITOR
-========================== */
 
 async function assignEditor() {
 
-```
-if (!manuscript) {
+    const editorEmail =
+    document.getElementById(
+        "editorSelect"
+    ).value;
 
-    alert(
-        "Manuscript not loaded."
-    );
+    if (!editorEmail) {
 
-    return;
-
-}
-
-
-const editorEmail =
-document.getElementById(
-    "editorSelect"
-).value;
-
-
-if (!editorEmail) {
-
-    alert(
+        alert(
         "Select an editor."
-    );
+        );
 
-    return;
+        return;
+    }
 
-}
+    try {
 
-
-try {
-
-    const response =
-    await fetch(
-
-        `${SUPABASE_URL}/rest/v1/editor_assignments`,
-
+        const response =
+        await fetch(
+        "https://rjoccijmuynkqjmlfthz.supabase.co/functions/v1/assign-editor",
         {
 
-            method:
-            "POST",
+            method:"POST",
 
-            headers: {
-
-                apikey:
-                SUPABASE_KEY,
-
-                Authorization:
-                `Bearer ${SUPABASE_KEY}`,
-
+            headers:{
                 "Content-Type":
                 "application/json"
-
             },
 
-            body:
-            JSON.stringify({
+            body:JSON.stringify({
 
                 article_id:
                 manuscript.article_id,
 
                 editor_email:
-                editorEmail,
-
-                active:
-                true
+                editorEmail
 
             })
 
+        });
+
+        const result =
+        await response.json();
+
+        if(!response.ok){
+
+            throw new Error(
+                result.error
+            );
+
         }
 
-    );
+        alert(
+        "Editor assigned successfully."
+        );
 
+        await loadAssignedEditor();
 
-    if (!response.ok) {
+    }
+    catch(error){
 
-        const errorText =
-        await response.text();
+        console.error(error);
 
-        throw new Error(
-            errorText
+        alert(
+        "Unable to assign editor."
         );
 
     }
 
-
-    alert(
-        "Editor assigned successfully."
-    );
-
-
-    await loadAssignedEditor();
-
-}
-catch (error) {
-
-    console.error(error);
-
-    alert(
-        "Unable to assign editor."
-    );
-
-}
-```
-
 }
 
-/* ==========================
-LOAD ASSIGNED EDITOR
-========================== */
 
 async function loadAssignedEditor() {
 
-```
-if (!manuscript) {
-    return;
-}
-
-
-const container =
-document.getElementById(
-    "currentEditor"
-);
-
-if (!container) {
-    return;
-}
-
-
-const response =
-await fetch(
-
-    `${SUPABASE_URL}/rest/v1/editor_assignments?article_id=eq.${encodeURIComponent(manuscript.article_id)}&active=eq.true`,
-
+    const response =
+    await fetch(
+    `${SUPABASE_URL}/rest/v1/editor_assignments?article_id=eq.${manuscript.article_id}&active=eq.true`,
     {
-
-        headers: {
-
-            apikey:
-            SUPABASE_KEY,
-
+        headers:{
+            apikey:SUPABASE_KEY,
             Authorization:
             `Bearer ${SUPABASE_KEY}`
-
         }
+    });
 
+    const data =
+    await response.json();
+
+    if(data.length>0){
+
+        document
+        .getElementById(
+        "currentEditor"
+        )
+        .innerHTML =
+        `<strong>Current Editor:</strong>
+        ${data[0].editor_email}`;
     }
-
-);
-
-
-if (!response.ok) {
-
-    console.error(
-        "Unable to load assigned editor."
-    );
-
-    return;
-
 }
 
-
-const data =
-await response.json();
-
-
-if (
-    Array.isArray(data) &&
-    data.length > 0
-) {
-
-    container.innerHTML = `
-
-        <strong>
-        Current Editor:
-        </strong>
-
-        ${data[0].editor_email}
-
-    `;
-
-}
-else {
-
-    container.innerHTML = "";
-
-}
-```
-
-}
 
 /* ==========================
-REVIEWER LIST
+REVIEWERS
 ========================== */
 
+/* --------------------------
+LOAD REVIEWER DROPDOWN
+-------------------------- */
+
 async function loadReviewerList() {
-
-```
-const select =
-document.getElementById(
-    "reviewerSelect"
-);
-
-
-if (!select) {
-    return;
-}
-
 
 try {
 
@@ -640,11 +332,8 @@ try {
 
     if (!response.ok) {
 
-        const errorText =
-        await response.text();
-
         throw new Error(
-            errorText
+            "Unable to load reviewer list."
         );
 
     }
@@ -654,7 +343,13 @@ try {
     await response.json();
 
 
-    select.innerHTML = `
+    const reviewerSelect =
+    document.getElementById(
+        "reviewerSelect"
+    );
+
+
+    reviewerSelect.innerHTML = `
 
         <option value="">
         Select Reviewer
@@ -663,54 +358,37 @@ try {
     `;
 
 
-    if (
-        !Array.isArray(reviewers)
-    ) {
+    reviewers.forEach(reviewer => {
 
-        return;
-
-    }
-
-
-    reviewers.forEach(
-        reviewer => {
-
-            const option =
-            document.createElement(
-                "option"
-            );
+        const option =
+        document.createElement(
+            "option"
+        );
 
 
-            option.value =
-            reviewer.email;
+        option.value =
+        reviewer.email;
 
 
-            option.textContent =
-            `${reviewer.name} — ${reviewer.affiliation || "Affiliation not provided"}`;
+option.textContent =
+`${reviewer.name} — ${reviewer.affiliation || "Affiliation not provided"}`;
 
 
-            option.dataset.name =
-            reviewer.name || "";
+        option.dataset.name =
+        reviewer.name;
+
+option.dataset.affiliation =
+reviewer.affiliation || "";
+
+option.dataset.expertise =
+reviewer.expertise || "";
 
 
-            option.dataset.email =
-            reviewer.email || "";
+        reviewerSelect.appendChild(
+            option
+        );
 
-
-            option.dataset.affiliation =
-            reviewer.affiliation || "";
-
-
-            option.dataset.expertise =
-            reviewer.expertise || "";
-
-
-            select.appendChild(
-                option
-            );
-
-        }
-    );
+    });
 
 }
 catch (error) {
@@ -720,231 +398,127 @@ catch (error) {
         error
     );
 
-    select.innerHTML = `
-
-        <option value="">
-        Unable to load reviewers
-        </option>
-
-    `;
-
 }
-```
 
 }
 
-/* ==========================
+/* --------------------------
 SELECT REVIEWER
-========================== */
+-------------------------- */
 
 function selectReviewer() {
 
-```
-const select =
+const reviewerSelect =
 document.getElementById(
     "reviewerSelect"
 );
 
 
-const emailInput =
+const reviewerEmail =
 document.getElementById(
     "reviewerEmail"
 );
 
 
-const info =
+const reviewerInfo =
 document.getElementById(
     "reviewerInfo"
 );
 
 
-if (!select) {
-    return;
-}
-
-
-const selected =
-select.options[
-    select.selectedIndex
+const selectedOption =
+reviewerSelect.options[
+    reviewerSelect.selectedIndex
 ];
 
 
-if (
-    !select.value ||
-    !selected
-) {
+if (!reviewerSelect.value) {
 
-    if (emailInput) {
-        emailInput.value = "";
-    }
+    reviewerEmail.value = "";
 
-    if (info) {
+    reviewerInfo.style.display =
+    "none";
 
-        info.style.display =
-        "none";
-
-        info.innerHTML = "";
-
-    }
+    reviewerInfo.innerHTML = "";
 
     return;
 
 }
 
 
-const name =
-selected.dataset.name || "-";
+reviewerEmail.value =
+reviewerSelect.value;
 
 
-const email =
-selected.dataset.email || select.value;
+reviewerInfo.innerHTML = `
+
+    <strong>
+    Reviewer:
+    </strong>
+    ${selectedOption.dataset.name}
+
+    <br>
+
+    <strong>
+    Email:
+    </strong>
+    ${reviewerSelect.value}
+
+    <br>
+
+    <strong>
+    Affiliation:
+    </strong>
+    ${selectedOption.dataset.affiliation || "-"}
+
+    <br>
+
+    <strong>
+    Expertise:
+    </strong>
+    ${selectedOption.dataset.expertise || "-"}
+
+`;
 
 
-const affiliation =
-selected.dataset.affiliation || "-";
+reviewerInfo.style.display =
+"block";
 
-
-const expertise =
-selected.dataset.expertise || "-";
-
-
-if (emailInput) {
-
-    emailInput.value =
-    email;
 
 }
 
+/* --------------------------
+LOAD ASSIGNED REVIEWERS
+-------------------------- */
 
-if (info) {
+async function loadReviewers() {
 
-    info.innerHTML = `
+const response =
+await fetch(
 
-        <strong>
-        Reviewer:
-        </strong>
+    `${SUPABASE_URL}/rest/v1/review_assignments?article_id=eq.${encodeURIComponent(articleId)}`,
 
-        ${name}
+    {
 
-        <br>
+        headers: {
 
-        <strong>
-        Email:
-        </strong>
+            apikey:
+            SUPABASE_KEY,
 
-        ${email}
+            Authorization:
+            `Bearer ${SUPABASE_KEY}`
 
-        <br>
+        }
 
-        <strong>
-        Affiliation:
-        </strong>
+    }
 
-        ${affiliation}
-
-        <br>
-
-        <strong>
-        Expertise:
-        </strong>
-
-        ${expertise}
-
-    `;
-
-
-    info.style.display =
-    "block";
-
-}
-```
-
-}
-
-/* ==========================
-SHOW ADD REVIEWER FORM
-========================== */
-
-function showAddReviewerForm() {
-
-```
-const form =
-document.getElementById(
-    "addReviewerForm"
 );
 
 
-if (form) {
+if (!response.ok) {
 
-    form.style.display =
-    "block";
-
-}
-```
-
-}
-
-/* ==========================
-HIDE ADD REVIEWER FORM
-========================== */
-
-function hideAddReviewerForm() {
-
-```
-const form =
-document.getElementById(
-    "addReviewerForm"
-);
-
-
-if (form) {
-
-    form.style.display =
-    "none";
-
-}
-```
-
-}
-
-/* ==========================
-ADD NEW REVIEWER
-========================== */
-
-async function addNewReviewer() {
-
-```
-const nameInput =
-document.getElementById(
-    "newReviewerName"
-);
-
-
-const emailInput =
-document.getElementById(
-    "newReviewerEmail"
-);
-
-
-const affiliationInput =
-document.getElementById(
-    "newReviewerAffiliation"
-);
-
-
-const expertiseInput =
-document.getElementById(
-    "newReviewerExpertise"
-);
-
-
-if (
-    !nameInput ||
-    !emailInput
-) {
-
-    alert(
-        "Reviewer form is not available."
+    console.error(
+        "Unable to load assigned reviewers."
     );
 
     return;
@@ -952,27 +526,147 @@ if (
 }
 
 
+const reviewers =
+await response.json();
+
+
+const tbody =
+document.querySelector(
+    "#reviewerTable tbody"
+);
+
+
+tbody.innerHTML = "";
+
+
+reviewers.forEach(r => {
+
+    const reviewLink =
+    `${window.location.origin}/reviewer/?token=${r.secure_token}`;
+
+
+    const row =
+    document.createElement(
+        "tr"
+    );
+
+
+    row.innerHTML = `
+
+        <td>
+        ${r.reviewer_email}
+        </td>
+
+        <td>
+        ${r.invitation_status}
+        </td>
+
+        <td>
+        ${r.review_submitted ? "Yes" : "No"}
+        </td>
+
+        <td>
+        ${r.review_deadline || "-"}
+        </td>
+
+        <td>
+
+        <input
+        id="link_${r.secure_token}"
+        type="text"
+        value="${reviewLink}"
+        readonly
+        style="width:100%;">
+
+        <button
+        onclick="copyReviewerLink('${r.secure_token}')">
+        Copy
+        </button>
+
+        </td>
+
+        <td>
+
+        <button
+        onclick="generateReviewerEmail('${r.secure_token}')">
+        Generate Email
+        </button>
+
+        </td>
+
+    `;
+
+
+    tbody.appendChild(
+        row
+    );
+
+});
+
+}
+
+/* --------------------------
+SHOW ADD REVIEWER FORM
+-------------------------- */
+
+function showAddReviewerForm() {
+
+const form =
+document.getElementById(
+    "addReviewerForm"
+);
+
+
+form.style.display =
+"block";
+
+}
+
+/* --------------------------
+HIDE ADD REVIEWER FORM
+-------------------------- */
+
+function hideAddReviewerForm() {
+
+const form =
+document.getElementById(
+    "addReviewerForm"
+);
+
+
+form.style.display =
+"none";
+
+}
+
+/* --------------------------
+ADD NEW REVIEWER
+-------------------------- */
+
+async function addNewReviewer() {
+
 const reviewerName =
-nameInput.value.trim();
+document.getElementById(
+    "newReviewerName"
+).value.trim();
 
 
 const reviewerEmail =
-emailInput.value.trim()
+document.getElementById(
+    "newReviewerEmail"
+).value.trim()
 .toLowerCase();
 
 
-const affiliation =
-affiliationInput ?
-affiliationInput.value.trim()
-:
-"";
+const reviewerAffiliation =
+document.getElementById(
+    "newReviewerAffiliation"
+).value.trim();
 
-
-const expertise =
-expertiseInput ?
-expertiseInput.value.trim()
-:
-"";
+const reviewerExpertise =
+document.getElementById(
+    "newReviewerExpertise"
+).value.trim();
 
 
 if (!reviewerName) {
@@ -1019,22 +713,22 @@ try {
 
             },
 
-            body:
-            JSON.stringify({
+body:
+JSON.stringify({
 
-                reviewer_name:
-                reviewerName,
+    reviewer_name:
+    reviewerName,
 
-                reviewer_email:
-                reviewerEmail,
+    reviewer_email:
+    reviewerEmail,
 
-                affiliation:
-                affiliation,
+    affiliation:
+    reviewerAffiliation,
 
-                expertise:
-                expertise
+    expertise:
+    reviewerExpertise
 
-            })
+})
 
         }
 
@@ -1062,35 +756,37 @@ try {
     );
 
 
-    nameInput.value =
-    "";
+    /* Clear form */
+
+    document.getElementById(
+        "newReviewerName"
+    ).value = "";
 
 
-    emailInput.value =
-    "";
+    document.getElementById(
+        "newReviewerEmail"
+    ).value = "";
+
+document.getElementById(
+    "newReviewerAffiliation"
+).value = "";
+
+document.getElementById(
+    "newReviewerExpertise"
+).value = "";
 
 
-    if (affiliationInput) {
-
-        affiliationInput.value =
-        "";
-
-    }
-
-
-    if (expertiseInput) {
-
-        expertiseInput.value =
-        "";
-
-    }
-
+    /* Hide form */
 
     hideAddReviewerForm();
 
 
+    /* Reload reviewer dropdown */
+
     await loadReviewerList();
 
+
+    /* Select the newly added reviewer */
 
     const reviewerSelect =
     document.getElementById(
@@ -1098,14 +794,20 @@ try {
     );
 
 
-    if (reviewerSelect) {
+    reviewerSelect.value =
+    reviewerEmail;
 
-        reviewerSelect.value =
-        reviewerEmail;
 
-        selectReviewer();
+    /* Populate reviewer information
+       and hidden email field */
 
-    }
+    selectReviewer();
+
+
+    /* Optional:
+       keep assigned reviewer table updated */
+
+    await loadReviewers();
 
 }
 catch (error) {
@@ -1122,230 +824,50 @@ catch (error) {
     );
 
 }
-```
 
 }
 
 /* ==========================
-ASSIGNED REVIEWERS
-========================== */
-
-async function loadReviewers() {
-
-```
-const tbody =
-document.querySelector(
-    "#reviewerTable tbody"
-);
-
-
-if (!tbody) {
-    return;
-}
-
-
-const response =
-await fetch(
-
-    `${SUPABASE_URL}/rest/v1/review_assignments?article_id=eq.${encodeURIComponent(articleId)}`,
-
-    {
-
-        headers: {
-
-            apikey:
-            SUPABASE_KEY,
-
-            Authorization:
-            `Bearer ${SUPABASE_KEY}`
-
-        }
-
-    }
-
-);
-
-
-if (!response.ok) {
-
-    console.error(
-        "Unable to load assigned reviewers."
-    );
-
-    return;
-
-}
-
-
-const reviewers =
-await response.json();
-
-
-tbody.innerHTML = "";
-
-
-if (
-    !Array.isArray(reviewers) ||
-    reviewers.length === 0
-) {
-
-    return;
-
-}
-
-
-reviewers.forEach(
-    reviewer => {
-
-        const reviewLink =
-        `${window.location.origin}/reviewer/?token=${reviewer.secure_token}`;
-
-
-        const row =
-        document.createElement(
-            "tr"
-        );
-
-
-        row.innerHTML = `
-
-            <td>
-            ${reviewer.reviewer_email || "-"}
-            </td>
-
-            <td>
-            ${reviewer.invitation_status || "-"}
-            </td>
-
-            <td>
-            ${
-                reviewer.review_submitted
-                ? "Yes"
-                : "No"
-            }
-            </td>
-
-            <td>
-            ${reviewer.review_deadline || "-"}
-            </td>
-
-            <td>
-
-                <input
-                id="link_${reviewer.secure_token}"
-                type="text"
-                value="${reviewLink}"
-                readonly
-                style="width:100%;">
-
-                <button
-                onclick="copyReviewerLink('${reviewer.secure_token}')">
-
-                Copy
-
-                </button>
-
-            </td>
-
-            <td>
-
-                <button
-                onclick="generateReviewerEmail('${reviewer.secure_token}')">
-
-                Generate Email
-
-                </button>
-
-            </td>
-
-        `;
-
-
-        tbody.appendChild(
-            row
-        );
-
-    }
-);
-```
-
-}
-
-/* ==========================
-ASSIGN REVIEWER
+   ASSIGN REVIEWER
 ========================== */
 
 async function assignReviewer() {
 
-```
-if (!manuscript) {
+    const email =
+    document.getElementById(
+        "reviewerEmail"
+    ).value.trim();
 
-    alert(
-        "Manuscript not loaded."
-    );
+    const deadline =
+    document.getElementById(
+        "reviewDeadline"
+    ).value;
 
-    return;
+    if (!email) {
 
-}
-
-
-const email =
-document.getElementById(
-    "reviewerEmail"
-).value.trim();
-
-
-const deadline =
-document.getElementById(
-    "reviewDeadline"
-).value;
-
-
-if (!email) {
-
-    alert(
+        alert(
         "Reviewer email required."
-    );
+        );
 
-    return;
+        return;
 
-}
+    }
 
+    try {
 
-try {
-
-    const secureToken =
-    crypto.randomUUID();
-
-
-    const response =
-    await fetch(
-
-        `${SUPABASE_URL}/rest/v1/review_assignments`,
-
+        const response =
+        await fetch(
+        "https://rjoccijmuynkqjmlfthz.supabase.co/functions/v1/assign-reviewer",
         {
 
-            method:
-            "POST",
+            method:"POST",
 
-            headers: {
-
-                apikey:
-                SUPABASE_KEY,
-
-                Authorization:
-                `Bearer ${SUPABASE_KEY}`,
-
-                "Content-Type":
-                "application/json",
-
-                "Prefer":
-                "return=representation"
-
+            headers:{
+                "Content-Type":"application/json",
+                "apikey":SUPABASE_KEY
             },
 
-            body:
-            JSON.stringify({
+            body:JSON.stringify({
 
                 article_id:
                 manuscript.article_id,
@@ -1359,15 +881,6 @@ try {
                 reviewer_email:
                 email,
 
-                secure_token:
-                secureToken,
-
-                invitation_status:
-                "Pending",
-
-                review_submitted:
-                false,
-
                 review_deadline:
                 deadline,
 
@@ -1376,452 +889,501 @@ try {
 
             })
 
+        });
+
+        const result =
+        await response.json();
+
+        if(!response.ok){
+
+            throw new Error(
+                result.error
+            );
+
         }
 
-    );
+        alert(
+        "Reviewer assigned successfully."
+        );
 
+        await loadReviewers();
 
-    const result =
-    await response.text();
+    }
+    catch(error){
 
+        console.error(error);
 
-    console.log(
-        "Review Assignment Response:",
-        result
-    );
-
-
-    if (!response.ok) {
-
-        throw new Error(
-            result
+        alert(
+        "Unable to assign reviewer."
         );
 
     }
 
-
-    alert(
-        "Reviewer assigned successfully."
-    );
-
-
-    await loadReviewers();
-
 }
-catch (error) {
 
-    console.error(error);
-
-    alert(
-        "Unable to assign reviewer."
-    );
-
-}
-```
-
-}
 
 /* ==========================
-REVIEWS
+   REVIEWS
 ========================== */
 
 async function loadReviews() {
 
-```
-const container =
-document.getElementById(
-    "reviewsContainer"
-);
-
-
-if (!container) {
-    return;
-}
-
-
-const response =
-await fetch(
-
-    `${SUPABASE_URL}/rest/v1/reviews?article_id=eq.${encodeURIComponent(articleId)}`,
-
-    {
-
-        headers: {
-
-            apikey:
-            SUPABASE_KEY,
-
-            Authorization:
-            `Bearer ${SUPABASE_KEY}`
-
+    const response =
+    await fetch(
+        `${SUPABASE_URL}/rest/v1/reviews?article_id=eq.${encodeURIComponent(articleId)}`,
+        {
+            headers:{
+                apikey:SUPABASE_KEY,
+                Authorization:
+                `Bearer ${SUPABASE_KEY}`
+            }
         }
+    );
 
+    const reviews =
+    await response.json();
+
+    const container =
+    document.getElementById(
+        "reviewsContainer"
+    );
+
+    if (!reviews.length) {
+
+        container.innerHTML =
+        "No reviews submitted.";
+
+        return;
     }
 
-);
+    container.innerHTML = "";
 
-
-if (!response.ok) {
-
-    container.innerHTML =
-    "Unable to load reviews.";
-
-    return;
-
-}
-
-
-const reviews =
-await response.json();
-
-
-if (
-    !Array.isArray(reviews) ||
-    reviews.length === 0
-) {
-
-    container.innerHTML =
-    "No reviews submitted.";
-
-    return;
-
-}
-
-
-container.innerHTML = "";
-
-
-reviews.forEach(
-    review => {
+    reviews.forEach(review => {
 
         container.innerHTML += `
 
-            <div class="card">
+        <div class="card">
 
-                <h3>
-                ${review.reviewer_email || "-"}
-                </h3>
+        <h3>
+        ${review.reviewer_email}
+        </h3>
 
-                <p>
+        <p>
+        <strong>Recommendation:</strong>
+        ${review.recommendation}
+        </p>
 
-                <strong>
-                Recommendation:
-                </strong>
+        <p>
+        <strong>Score:</strong>
+        ${review.score || "-"}
+        </p>
 
-                ${review.recommendation || "-"}
+        <p>
+        <strong>Comments to Author:</strong>
+        <br>
+        ${review.comments_to_author || ""}
+        </p>
 
-                </p>
+        <p>
+        <strong>Confidential Comments:</strong>
+        <br>
+        ${review.confidential_comments || ""}
+        </p>
 
-                <p>
-
-                <strong>
-                Score:
-                </strong>
-
-                ${review.score || "-"}
-
-                </p>
-
-                <p>
-
-                <strong>
-                Comments to Author:
-                </strong>
-
-                <br>
-
-                ${review.comments_to_author || ""}
-
-                </p>
-
-                <p>
-
-                <strong>
-                Confidential Comments:
-                </strong>
-
-                <br>
-
-                ${review.confidential_comments || ""}
-
-                </p>
-
-            </div>
+        </div>
 
         `;
-
-    }
-);
-```
+    });
 
 }
 
 /* ==========================
-EDITORIAL DECISION
+   DECISION
 ========================== */
-
 async function updateDecision() {
 
-```
-const decision =
-document.getElementById(
-    "decision"
-).value;
+    const decision =
+    document.getElementById(
+        "decision"
+    ).value;
 
+    const remarks =
+    document.getElementById(
+        "decisionRemarks"
+    ).value;
 
-const remarks =
-document.getElementById(
-    "decisionRemarks"
-).value;
+    const decisionType =
+    document.getElementById(
+        "decisionType"
+    ).value;
 
-
-const decisionTypeElement =
-document.getElementById(
-    "decisionType"
-);
-
-
-const decisionType =
-decisionTypeElement
-?
-decisionTypeElement.value
-:
-"Final";
-
-
-const editorData =
-JSON.parse(
-    sessionStorage.getItem(
-        "editor"
-    )
-);
-
-
-if (!editorData) {
-
-    alert(
-        "Editor session not found."
+    const editor =
+    JSON.parse(
+        sessionStorage.getItem("editor")
     );
 
-    return;
+    try{
 
-}
+        const response =
+        await fetch(
 
+            "https://rjoccijmuynkqjmlfthz.supabase.co/functions/v1/editor-decision",
 
-try {
+            {
 
-    const response =
-    await fetch(
+                method:"POST",
 
-        `${SUPABASE_URL}/functions/v1/editor-decision`,
+                headers:{
 
-        {
+                    "Content-Type":"application/json",
 
-            method:
-            "POST",
+                    "apikey":
+                    SUPABASE_KEY
 
-            headers: {
+                },
 
-                "Content-Type":
-                "application/json",
+                body:JSON.stringify({
 
-                apikey:
-                SUPABASE_KEY
+                    article_id:
+                    articleId,
 
-            },
+                    decision,
 
-            body:
-            JSON.stringify({
+                    remarks,
 
-                article_id:
-                articleId,
+                    decision_type:
+                    decisionType,
 
-                decision:
-                decision,
+                    editor_email:
+                    editor.editor_email
 
-                remarks:
-                remarks,
+                })
 
-                editor_email:
-                editorData.editor_email,
+            }
 
-                decision_type:
-                decisionType
+        );
 
-            })
+        const result =
+        await response.json();
+
+        if(!response.ok){
+
+            throw new Error(
+                result.error
+            );
 
         }
 
-    );
+        alert(
+            "Decision saved successfully."
+        );
 
+        await loadManuscript();
+setupDecisionPanel();
 
-    const result =
-    await response.json();
+    }
 
+    catch(error){
 
-    if (!response.ok) {
+        console.error(error);
 
-        throw new Error(
-
-            result.error ||
-            "Unable to update decision."
-
+        alert(
+            error.message
         );
 
     }
 
-
-    alert(
-        "Decision updated successfully."
-    );
-
-
-    await loadManuscript();
-
-}
-catch (error) {
-
-    console.error(
-        "Decision Error:",
-        error
-    );
-
-
-    alert(
-        error.message ||
-        "Unable to update decision."
-    );
-
-}
-```
-
 }
 
-/* ==========================
-COPY REVIEWER LINK
-========================== */
+function copyReviewerLink(token) {
 
-async function copyReviewerLink(
-token
-) {
+    const input =
+    document.getElementById(
+        `link_${token}`
+    );
 
-```
-const input =
-document.getElementById(
-    `link_${token}`
-);
+    if(!input){
 
-
-if (!input) {
-
-    alert(
+        alert(
         "Reviewer link not found."
-    );
+        );
 
-    return;
+        return;
+    }
 
-}
-
-
-try {
-
-    await navigator.clipboard.writeText(
+    navigator.clipboard.writeText(
         input.value
     );
 
-
     alert(
         "Reviewer link copied."
     );
-
-}
-catch (error) {
-
-    console.error(error);
-
-    input.select();
-
-    document.execCommand(
-        "copy"
-    );
-
-    alert(
-        "Reviewer link copied."
-    );
-
-}
-```
-
 }
 
-/* ==========================
-GENERATE REVIEWER EMAIL
-========================== */
+function generateReviewerEmail(token) {
 
-async function generateReviewerEmail(
-secureToken
-) {
+    const reviewLink =
+    `${window.location.origin}/reviewer/?token=${token}`;
 
-```
-const reviewLink =
-`${window.location.origin}/reviewer/?token=${secureToken}`;
-
-
-const emailText =
-```
-
-`Dear Reviewer,
+    const emailText = `Dear Reviewer,
 
 I hope this message finds you well.
-
-I am pleased to invite you to serve as a peer reviewer for a manuscript submitted to the Journal of Materials Intelligence and Computing (JMIC). Given your expertise in the relevant field, we believe your insights would be highly valuable in evaluating this work.
-
+I am pleased to invite you to serve as a peer reviewer for a manuscript submitted to our journal. Given your expertise in the relevant field, we believe your insights would be highly valuable in evaluating this work.
 Please find the manuscript details below:
 
 Article ID: ${manuscript.article_id}
 
 Title: ${manuscript.title}
 
-Abstract:
-${manuscript.abstract || ""}
+Abstract: ${manuscript.abstract}
 
 We would be grateful if you could kindly confirm your willingness to review this manuscript. If you accept this invitation, you will be provided with secure access to the full manuscript and the review submission form through your personalized reviewer link.
+Review Link: ${reviewLink}
 
-Review Link:
-${reviewLink}
+Please use the above link to accept or decline the invitation. We sincerely appreciate your time and consideration. Your contribution would play an important role in maintaining the quality and integrity of our peer-review process.
 
-Please use the above link to accept or decline the invitation.
+Thank you for considering this invitation.
 
-We sincerely appreciate your time and consideration. Your contribution would play an important role in maintaining the quality and integrity of the peer-review process.
+Kind regards,`;
 
-Kind regards,
-
-JMIC Editorial Office
-Journal of Materials Intelligence and Computing
-[editorial@journal.imi-bd.com](mailto:editorial@journal.imi-bd.com)`;
-
-```
-try {
-
-    await navigator.clipboard.writeText(
+    navigator.clipboard.writeText(
         emailText
     );
-
 
     alert(
         "Invitation email copied to clipboard."
     );
-
 }
-catch (error) {
 
-    console.error(error);
 
-    alert(
-        "Unable to copy invitation email."
+async function loadReviewerList() {
+
+    try {
+
+        const response =
+        await fetch(
+        `${SUPABASE_URL}/rest/v1/reviewers?select=id,name,email,affiliation,expertise`,
+        {
+            headers:{
+                apikey:SUPABASE_KEY,
+                Authorization:
+                `Bearer ${SUPABASE_KEY}`
+            }
+        });
+
+        const reviewers =
+        await response.json();
+
+        reviewerList = reviewers;
+
+        console.log(
+        "Reviewers:",
+        reviewers
+        );
+
+        const select =
+        document.getElementById(
+        "reviewerSelect"
+        );
+
+        if(!select){
+
+            console.error(
+            "reviewerSelect not found"
+            );
+
+            return;
+        }
+
+        select.innerHTML =
+        '<option value="">Select Reviewer</option>';
+
+        reviewers.forEach(reviewer => {
+
+    const expertiseText =
+    reviewer.expertise
+    ?
+    reviewer.expertise
+        .split(",")
+        .slice(0,3)
+        .join(", ")
+    :
+    "";
+
+    select.innerHTML += `
+    <option value="${reviewer.email}">
+        ${reviewer.name} — ${expertiseText}
+    </option>
+    `;
+});
+
+    }
+    catch(error){
+
+        console.error(
+        "Reviewer load error:",
+        error
+        );
+    }
+}
+
+function selectReviewer() {
+
+    const email =
+    document.getElementById(
+    "reviewerSelect"
+    ).value;
+
+    document.getElementById(
+    "reviewerEmail"
+    ).value = email;
+
+    const reviewer =
+    reviewerList.find(
+        r => r.email === email
     );
 
+    const infoDiv =
+    document.getElementById(
+    "reviewerInfo"
+    );
+
+    if(!reviewer){
+
+        infoDiv.style.display =
+        "none";
+
+        return;
+    }
+
+    infoDiv.style.display =
+    "block";
+
+    infoDiv.innerHTML = `
+
+    <strong>
+    ${reviewer.name}
+    </strong>
+
+    <br><br>
+
+    <strong>
+    Affiliation:
+    </strong>
+
+    ${reviewer.affiliation || "-"}
+
+    <br><br>
+
+    <strong>
+    Expertise:
+    </strong>
+
+    ${reviewer.expertise || "-"}
+
+    `;
 }
-```
+
+async function loadSignedPdfUrl() {
+
+    if (!manuscript || !manuscript.pdf_path) {
+
+        return;
+
+    }
+
+    try {
+
+        const response =
+        await fetch(
+        "https://rjoccijmuynkqjmlfthz.supabase.co/functions/v1/get-manuscript-url",
+        {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "apikey": SUPABASE_KEY
+            },
+            body: JSON.stringify({
+
+                pdf_path:
+                manuscript.pdf_path
+
+            })
+        });
+
+        if (!response.ok) {
+
+            console.error(
+            await response.text()
+            );
+
+            return;
+
+        }
+
+        const data =
+        await response.json();
+
+        const view =
+        document.getElementById(
+        "viewPdf"
+        );
+
+        const download =
+        document.getElementById(
+        "downloadPdf"
+        );
+
+        if (view) {
+
+            view.href =
+            data.signedUrl;
+
+        }
+
+        if (download) {
+
+            download.href =
+            data.signedUrl;
+
+        }
+
+    }
+    catch(error){
+
+        console.error(
+        "Signed URL Error:",
+        error
+        );
+
+    }
+
+}
+
+function setupDecisionPanel(){
+
+    const decisionType =
+    document.getElementById(
+        "decisionType"
+    );
+
+    if(!decisionType) return;
+
+    if(
+        currentEditor.role !==
+        "Editor-in-Chief"
+    ){
+
+        decisionType.innerHTML = `
+
+        <option value="Recommendation">
+
+            Recommendation
+
+        </option>
+
+        `;
+
+    }
 
 }
