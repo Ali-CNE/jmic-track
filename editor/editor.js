@@ -251,7 +251,7 @@ document
 manuscripts.filter(
 m =>
 m.status ===
-"Accepted"
+"Accept"
 ).length;
 
 document
@@ -260,7 +260,7 @@ document
 manuscripts.filter(
 m =>
 m.status ===
-"Rejected"
+"Reject"
 ).length;
 
 }
