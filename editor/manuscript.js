@@ -406,12 +406,14 @@ async function loadReviewerList() {
             reviewer.email;
 
 
-            option.textContent =
-
-            `${reviewer.name} — ${
-                reviewer.affiliation ||
-                "Affiliation not provided"
-            }`;
+option.textContent =
+`${reviewer.name} — ${
+    reviewer.expertise ||
+    "Expertise not provided"
+} — ${
+    reviewer.affiliation ||
+    "Affiliation not provided"
+}`;
 
 
             option.dataset.name =
