@@ -301,104 +301,154 @@ REVIEWERS
 ========================== */
 
 /* --------------------------
-LOAD REVIEWER DROPDOWN
+   LOAD REVIEWER DROPDOWN
 -------------------------- */
 
 async function loadReviewerList() {
 
-try {
+    try {
 
-    const response =
-    await fetch(
+        const response =
+        await fetch(
 
-        `${SUPABASE_URL}/rest/v1/reviewers?select=name,email,affiliation,expertise&order=name.asc`,
+            `${SUPABASE_URL}/functions/v1/get-reviewers`,
 
-        {
+            {
 
-            headers: {
+                method:
+                "POST",
 
-                apikey:
-                SUPABASE_KEY,
+                headers: {
 
-                Authorization:
-                `Bearer ${SUPABASE_KEY}`
+                    "Content-Type":
+                    "application/json",
+
+                    apikey:
+                    SUPABASE_KEY
+
+                }
 
             }
 
+        );
+
+
+        if (!response.ok) {
+
+            const errorText =
+            await response.text();
+
+            throw new Error(
+                errorText ||
+                "Unable to load reviewer list."
+            );
+
         }
 
-    );
+
+        const result =
+        await response.json();
 
 
-    if (!response.ok) {
+        if (
+            !result.success ||
+            !Array.isArray(
+                result.reviewers
+            )
+        ) {
 
-        throw new Error(
-            "Unable to load reviewer list."
+            throw new Error(
+                result.error ||
+                "Invalid reviewer list."
+            );
+
+        }
+
+
+        reviewerList =
+        result.reviewers;
+
+
+        const select =
+        document.getElementById(
+            "reviewerSelect"
+        );
+
+
+        if (!select) {
+
+            console.error(
+                "reviewerSelect not found."
+            );
+
+            return;
+
+        }
+
+
+        select.innerHTML =
+
+        `<option value="">
+            Select Reviewer
+        </option>`;
+
+
+        reviewerList.forEach(
+        reviewer => {
+
+            const option =
+            document.createElement(
+                "option"
+            );
+
+
+            option.value =
+            reviewer.email;
+
+
+            option.textContent =
+
+            `${reviewer.name} — ${
+                reviewer.affiliation ||
+                "Affiliation not provided"
+            }`;
+
+
+            option.dataset.name =
+            reviewer.name || "";
+
+
+            option.dataset.affiliation =
+            reviewer.affiliation || "";
+
+
+            option.dataset.expertise =
+            reviewer.expertise || "";
+
+
+            select.appendChild(
+                option
+            );
+
+        });
+
+
+        console.log(
+            "Reviewer list loaded:",
+            reviewerList.length
         );
 
     }
 
 
-    const reviewers =
-    await response.json();
+    catch (error) {
 
-
-    const reviewerSelect =
-    document.getElementById(
-        "reviewerSelect"
-    );
-
-
-    reviewerSelect.innerHTML = `
-
-        <option value="">
-        Select Reviewer
-        </option>
-
-    `;
-
-
-    reviewers.forEach(reviewer => {
-
-        const option =
-        document.createElement(
-            "option"
+        console.error(
+            "Reviewer List Error:",
+            error
         );
 
-
-        option.value =
-        reviewer.email;
-
-
-option.textContent =
-`${reviewer.name} — ${reviewer.affiliation || "Affiliation not provided"}`;
-
-
-        option.dataset.name =
-        reviewer.name;
-
-option.dataset.affiliation =
-reviewer.affiliation || "";
-
-option.dataset.expertise =
-reviewer.expertise || "";
-
-
-        reviewerSelect.appendChild(
-            option
-        );
-
-    });
-
-}
-catch (error) {
-
-    console.error(
-        "Reviewer List Error:",
-        error
-    );
-
-}
+    }
 
 }
 
@@ -1156,76 +1206,6 @@ Kind regards,`;
 }
 
 
-async function loadReviewerList() {
-
-    try {
-
-        const response =
-        await fetch(
-        `${SUPABASE_URL}/rest/v1/reviewers?select=id,name,email,affiliation,expertise`,
-        {
-            headers:{
-                apikey:SUPABASE_KEY,
-                Authorization:
-                `Bearer ${SUPABASE_KEY}`
-            }
-        });
-
-        const reviewers =
-        await response.json();
-
-        reviewerList = reviewers;
-
-        console.log(
-        "Reviewers:",
-        reviewers
-        );
-
-        const select =
-        document.getElementById(
-        "reviewerSelect"
-        );
-
-        if(!select){
-
-            console.error(
-            "reviewerSelect not found"
-            );
-
-            return;
-        }
-
-        select.innerHTML =
-        '<option value="">Select Reviewer</option>';
-
-        reviewers.forEach(reviewer => {
-
-    const expertiseText =
-    reviewer.expertise
-    ?
-    reviewer.expertise
-        .split(",")
-        .slice(0,3)
-        .join(", ")
-    :
-    "";
-
-    select.innerHTML += `
-    <option value="${reviewer.email}">
-        ${reviewer.name} — ${expertiseText}
-    </option>
-    `;
-});
-
-    }
-    catch(error){
-
-        console.error(
-        "Reviewer load error:",
-        error
-        );
-    }
-}
 
 function selectReviewer() {
 
