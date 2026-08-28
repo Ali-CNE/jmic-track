@@ -311,11 +311,8 @@ try {
 
     const response =
     await fetch(
-
         `${SUPABASE_URL}/rest/v1/reviewers?select=name,email,affiliation,expertise&order=name.asc`,
-
         {
-
             headers: {
 
                 apikey:
@@ -325,11 +322,8 @@ try {
                 `Bearer ${SUPABASE_KEY}`
 
             }
-
         }
-
     );
-
 
     if (!response.ok) {
 
@@ -338,6 +332,21 @@ try {
         );
 
     }
+
+    const reviewers =
+    await response.json();
+
+    // Continue with your existing code...
+
+}
+catch (error) {
+
+    console.error(
+        "Reviewer List Error:",
+        error
+    );
+
+}
 
 
     const reviewers =
