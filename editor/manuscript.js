@@ -312,7 +312,7 @@ try {
     const response =
     await fetch(
 
-        `${SUPABASE_URL}/rest/v1/reviewers?select=name,email&order=name.asc`,
+        `${SUPABASE_URL}/rest/v1/reviewers?select=name,email,affiliation,expertise&order=name.asc`,
 
         {
 
@@ -371,12 +371,18 @@ try {
         reviewer.email;
 
 
-        option.textContent =
-        `${reviewer.name} (${reviewer.email})`;
+option.textContent =
+`${reviewer.name} — ${reviewer.affiliation || "Affiliation not provided"}`;
 
 
         option.dataset.name =
         reviewer.name;
+
+option.dataset.affiliation =
+reviewer.affiliation || "";
+
+option.dataset.expertise =
+reviewer.expertise || "";
 
 
         reviewerSelect.appendChild(
@@ -452,7 +458,6 @@ reviewerInfo.innerHTML = `
     <strong>
     Reviewer:
     </strong>
-
     ${selectedOption.dataset.name}
 
     <br>
@@ -460,8 +465,21 @@ reviewerInfo.innerHTML = `
     <strong>
     Email:
     </strong>
-
     ${reviewerSelect.value}
+
+    <br>
+
+    <strong>
+    Affiliation:
+    </strong>
+    ${selectedOption.dataset.affiliation || "-"}
+
+    <br>
+
+    <strong>
+    Expertise:
+    </strong>
+    ${selectedOption.dataset.expertise || "-"}
 
 `;
 
@@ -650,6 +668,17 @@ document.getElementById(
 .toLowerCase();
 
 
+const reviewerAffiliation =
+document.getElementById(
+    "newReviewerAffiliation"
+).value.trim();
+
+const reviewerExpertise =
+document.getElementById(
+    "newReviewerExpertise"
+).value.trim();
+
+
 if (!reviewerName) {
 
     alert(
@@ -694,16 +723,22 @@ try {
 
             },
 
-            body:
-            JSON.stringify({
+body:
+JSON.stringify({
 
-                reviewer_name:
-                reviewerName,
+    reviewer_name:
+    reviewerName,
 
-                reviewer_email:
-                reviewerEmail
+    reviewer_email:
+    reviewerEmail,
 
-            })
+    affiliation:
+    reviewerAffiliation,
+
+    expertise:
+    reviewerExpertise
+
+})
 
         }
 
@@ -741,6 +776,14 @@ try {
     document.getElementById(
         "newReviewerEmail"
     ).value = "";
+
+document.getElementById(
+    "newReviewerAffiliation"
+).value = "";
+
+document.getElementById(
+    "newReviewerExpertise"
+).value = "";
 
 
     /* Hide form */
