@@ -336,7 +336,58 @@ try {
     const reviewers =
     await response.json();
 
-    // Continue with your existing code...
+    const reviewerSelect =
+    document.getElementById(
+        "reviewerSelect"
+    );
+
+    if (!reviewerSelect) {
+
+        console.error(
+            "reviewerSelect element not found."
+        );
+
+        return;
+
+    }
+
+    reviewerSelect.innerHTML = `
+
+        <option value="">
+            Select Reviewer
+        </option>
+
+    `;
+
+    reviewers.forEach(
+        reviewer => {
+
+            const option =
+            document.createElement(
+                "option"
+            );
+
+            option.value =
+            reviewer.email;
+
+            option.textContent =
+            `${reviewer.name} — ${reviewer.affiliation || "Affiliation not provided"}`;
+
+            option.dataset.name =
+            reviewer.name;
+
+            option.dataset.affiliation =
+            reviewer.affiliation || "";
+
+            option.dataset.expertise =
+            reviewer.expertise || "";
+
+            reviewerSelect.appendChild(
+                option
+            );
+
+        }
+    );
 
 }
 catch (error) {
@@ -345,6 +396,9 @@ catch (error) {
         "Reviewer List Error:",
         error
     );
+
+}
+```
 
 }
 
