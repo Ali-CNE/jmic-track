@@ -115,7 +115,7 @@ async function login() {
          */
 
         window.location.href =
-        "editorial.html";
+        "index.html";
 
     }
 
