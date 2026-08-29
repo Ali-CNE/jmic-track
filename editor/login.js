@@ -18,7 +18,6 @@ async function login() {
     .getElementById("password")
     .value;
 
-
     const message =
     document
     .getElementById("loginMessage");
@@ -39,7 +38,7 @@ async function login() {
         const response =
         await fetch(
 
-            `${SUPABASE_URL}/auth/v1/token?grant_type=password`,
+            `${SUPABASE_URL}/rest/v1/rpc/verify_editor_login`,
 
             {
 
@@ -50,6 +49,9 @@ async function login() {
                     "apikey":
                     SUPABASE_KEY,
 
+                    "Authorization":
+                    `Bearer ${SUPABASE_KEY}`,
+
                     "Content-Type":
                     "application/json"
 
@@ -58,10 +60,10 @@ async function login() {
                 body:
                 JSON.stringify({
 
-                    email:
+                    p_email:
                     email,
 
-                    password:
+                    p_password:
                     password
 
                 })
@@ -75,43 +77,55 @@ async function login() {
         await response.json();
 
 
-        if (!response.ok) {
+        if (
+            !response.ok ||
+            !Array.isArray(result) ||
+            result.length === 0
+        ) {
 
             throw new Error(
-
-                result.error_description ||
-                result.msg ||
-                "Login failed."
-
+                "Invalid email or password."
             );
 
         }
 
 
         /*
-         * Store the authenticated session.
+         * Store the same editor information
+         * expected by editor.js.
          */
 
-        sessionStorage.setItem(
-            "access_token",
-            result.access_token
-        );
+        const currentEditor =
+        result[0];
 
 
         sessionStorage.setItem(
-            "refresh_token",
-            result.refresh_token
-        );
 
+            "editor",
 
-        sessionStorage.setItem(
-            "user_email",
-            email
+            JSON.stringify(
+                currentEditor
+            )
+
         );
 
 
         /*
-         * Go to editorial dashboard.
+         * Optional: store email separately.
+         */
+
+        sessionStorage.setItem(
+
+            "user_email",
+
+            email
+
+        );
+
+
+        /*
+         * Go directly to the
+         * existing editorial dashboard.
          */
 
         window.location.href =
