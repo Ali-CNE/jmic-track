@@ -1069,6 +1069,7 @@ async function loadReviews() {
             review.comments_to_author || "-";
 
         authorComments.style.whiteSpace = "pre-wrap";
+        authorComments.style.textAlign = "left";
         authorComments.style.overflowWrap = "anywhere";
         authorComments.style.lineHeight = "1.7";
         authorComments.style.marginBottom = "20px";
@@ -1094,6 +1095,7 @@ async function loadReviews() {
             review.confidential_comments || "-";
 
         confidentialComments.style.whiteSpace = "pre-wrap";
+        confidentialComments.style.textAlign = "left";
         confidentialComments.style.overflowWrap = "anywhere";
         confidentialComments.style.lineHeight = "1.7";
         confidentialComments.style.marginBottom = "20px";
