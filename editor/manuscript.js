@@ -980,31 +980,29 @@ async function assignReviewer() {
 
 async function loadReviews() {
 
-    const response =
-    await fetch(
+    const response = await fetch(
         `${SUPABASE_URL}/rest/v1/reviews?article_id=eq.${encodeURIComponent(articleId)}`,
         {
-            headers:{
-                apikey:SUPABASE_KEY,
-                Authorization:
-                `Bearer ${SUPABASE_KEY}`
+            headers: {
+                apikey: SUPABASE_KEY,
+                Authorization: `Bearer ${SUPABASE_KEY}`
             }
         }
     );
 
-    const reviews =
-    await response.json();
+    if (!response.ok) {
+        console.error("Unable to load reviews.");
+        return;
+    }
 
-    const container =
-    document.getElementById(
+    const reviews = await response.json();
+
+    const container = document.getElementById(
         "reviewsContainer"
     );
 
     if (!reviews.length) {
-
-        container.innerHTML =
-        "No reviews submitted.";
-
+        container.textContent = "No reviews submitted.";
         return;
     }
 
@@ -1012,42 +1010,103 @@ async function loadReviews() {
 
     reviews.forEach(review => {
 
-        container.innerHTML += `
+        const card = document.createElement("div");
+        card.className = "card";
 
-        <div class="card">
+        // Reviewer email
+        const reviewerTitle = document.createElement("h3");
+        reviewerTitle.textContent =
+            review.reviewer_email || "Reviewer";
 
-        <h3>
-        ${review.reviewer_email}
-        </h3>
+        card.appendChild(reviewerTitle);
 
-        <p>
-        <strong>Recommendation:</strong>
-        ${review.recommendation}
-        </p>
+        // Recommendation
+        const recommendation = document.createElement("p");
 
-        <p>
-        <strong>Score:</strong>
-        ${review.score || "-"}
-        </p>
+        const recommendationLabel =
+            document.createElement("strong");
 
-        <p>
-        <strong>Comments to Author:</strong>
-        <br>
-        ${review.comments_to_author || ""}
-        </p>
+        recommendationLabel.textContent = "Recommendation: ";
 
-        <p>
-        <strong>Confidential Comments:</strong>
-        <br>
-        ${review.confidential_comments || ""}
-        </p>
+        recommendation.appendChild(recommendationLabel);
 
-        </div>
+        recommendation.appendChild(
+            document.createTextNode(
+                review.recommendation || "-"
+            )
+        );
 
-        `;
+        card.appendChild(recommendation);
+
+        // Score
+        const score = document.createElement("p");
+
+        const scoreLabel = document.createElement("strong");
+        scoreLabel.textContent = "Score: ";
+
+        score.appendChild(scoreLabel);
+
+        score.appendChild(
+            document.createTextNode(
+                review.score ?? "-"
+            )
+        );
+
+        card.appendChild(score);
+
+        // Comments to Author
+        const authorLabel = document.createElement("p");
+
+        const authorStrong = document.createElement("strong");
+        authorStrong.textContent = "Comments to Author:";
+
+        authorLabel.appendChild(authorStrong);
+        card.appendChild(authorLabel);
+
+        const authorComments = document.createElement("div");
+
+        authorComments.textContent =
+            review.comments_to_author || "-";
+
+        authorComments.style.whiteSpace = "pre-wrap";
+        authorComments.style.overflowWrap = "anywhere";
+        authorComments.style.lineHeight = "1.7";
+        authorComments.style.marginBottom = "20px";
+
+        card.appendChild(authorComments);
+
+        // Confidential Comments
+        const confidentialLabel = document.createElement("p");
+
+        const confidentialStrong =
+            document.createElement("strong");
+
+        confidentialStrong.textContent =
+            "Confidential Comments:";
+
+        confidentialLabel.appendChild(confidentialStrong);
+        card.appendChild(confidentialLabel);
+
+        const confidentialComments =
+            document.createElement("div");
+
+        confidentialComments.textContent =
+            review.confidential_comments || "-";
+
+        confidentialComments.style.whiteSpace = "pre-wrap";
+        confidentialComments.style.overflowWrap = "anywhere";
+        confidentialComments.style.lineHeight = "1.7";
+        confidentialComments.style.marginBottom = "20px";
+
+        card.appendChild(confidentialComments);
+
+        // Add review card
+        container.appendChild(card);
+
     });
 
 }
+
 
 /* ==========================
    DECISION
